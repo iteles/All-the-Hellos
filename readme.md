@@ -1,0 +1,1 @@
+This is a playground for the card app I'm looking to build as a learning tool.
