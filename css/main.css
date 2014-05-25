@@ -1,0 +1,30 @@
+
+#header h1{
+	text-align: center;
+	color: white;
+	font-family: 'Yanone Kaffeesatz', sans-serif;
+	font-weight: 300;
+	font-size: 2.5em;
+	padding: 0.2em;
+}
+
+#content img{
+	display: block;
+	max-width: 80%;
+	margin: 0 auto;
+	padding: 1em 0;
+}
+
+
+/******************
+COLOURS
+******************/
+
+#header {
+	background: #00CED1;
+	/*border-bottom: solid #008888;*/
+}
+
+#content {
+	background-image: url("../img/background-pattern.jpg");
+}
