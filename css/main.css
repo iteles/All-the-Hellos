@@ -1,19 +1,70 @@
-
 #header h1{
 	text-align: center;
-	color: white;
+	color: #00CED1;
 	font-family: 'Yanone Kaffeesatz', sans-serif;
 	font-weight: 300;
 	font-size: 2.5em;
 	padding: 0.2em;
 }
 
-#content img{
+#take-a-photo img{
+	/*CSS for the take a photo button*/
 	display: block;
-	max-width: 80%;
+	max-width: 70%;
 	margin: 0 auto;
 	padding: 1em 0;
+	/*end CSS for the take a photo button*/
 }
+
+#home-search-bar input{
+	width: 100%;
+	color: #5c5c5c;
+	font-family: 'Yanone Kaffeesatz', sans-serif;
+	font-weight: 300;
+	font-size: 1.5em;
+	padding: 0.2em 2em;
+	/*margin-left: 1.5em;*/
+}
+
+
+#list-of-friends li{
+	clear:both;
+	max-height: 2.5em;
+	border-bottom: 1px solid #5c5c5c;
+}
+
+#list-of-friends li img{
+	float: left;
+	max-height: 3em;
+	border-radius: 100%;
+	padding: 0.2em;
+}
+
+#list-of-friends li p{
+	float: left;
+	color: #5c5c5c;
+	font-family: 'Yanone Kaffeesatz', sans-serif;
+	font-weight: 300;
+	font-size: 1em;
+	padding: 0.75em 0.2em;
+}
+
+#footer {
+	clear:both;
+	width: 100%;
+	bottom: 0;
+    position: fixed;
+}
+
+#footer p {
+	display: inline-block;
+	color: #ffffff;
+	font-family: 'Yanone Kaffeesatz', sans-serif;
+	font-weight: 300;
+	border-left: 1px solid white;
+	padding: 0.5em;
+}
+
 
 
 /******************
@@ -21,10 +72,31 @@ COLOURS
 ******************/
 
 #header {
+	background: #ffffff;
+	/*border-bottom: 1px solid #008888;*/
+}
+
+#take-a-photo {
 	background: #00CED1;
-	/*border-bottom: solid #008888;*/
+}
+
+#search {
+	background: #ffffff;
+}
+
+#home-search-bar input{
+	background-image: url("../img/search-icon.png");
+	background-repeat: no-repeat;
+	background-size: 1.5em;
+	background-position: left center;
+	border-top: 1px solid #008888;
+	border-bottom: 1px solid #008888;
 }
 
 #content {
-	background-image: url("../img/background-pattern.jpg");
+	/*background-image: url("../img/background-pattern.jpg");*/
+}
+
+#footer {
+	background: #00CED1;
 }
