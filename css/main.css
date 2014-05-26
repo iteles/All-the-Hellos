@@ -3,16 +3,16 @@
 	color: #00CED1;
 	font-family: 'Yanone Kaffeesatz', sans-serif;
 	font-weight: 300;
-	font-size: 2.5em;
+	font-size: 4em;
 	padding: 0.2em;
 }
 
 #take-a-photo img{
 	/*CSS for the take a photo button*/
 	display: block;
-	max-width: 70%;
+	max-width: 80%;
 	margin: 0 auto;
-	padding: 1em 0;
+	padding: 2em 0;
 	/*end CSS for the take a photo button*/
 }
 
@@ -21,7 +21,7 @@
 	color: #5c5c5c;
 	font-family: 'Yanone Kaffeesatz', sans-serif;
 	font-weight: 300;
-	font-size: 1.5em;
+	font-size: 3em;
 	padding: 0.2em 2em;
 	/*margin-left: 1.5em;*/
 }
@@ -29,15 +29,15 @@
 
 #list-of-friends li{
 	clear:both;
-	max-height: 2.5em;
+	max-height: 4em;
 	border-bottom: 1px solid #5c5c5c;
 }
 
 #list-of-friends li img{
 	float: left;
-	max-height: 3em;
+	max-height: 4em;
 	border-radius: 100%;
-	padding: 0.2em;
+	padding: 0.75em 0.2em;
 }
 
 #list-of-friends li p{
@@ -45,7 +45,7 @@
 	color: #5c5c5c;
 	font-family: 'Yanone Kaffeesatz', sans-serif;
 	font-weight: 300;
-	font-size: 1em;
+	font-size: 2.5em;
 	padding: 0.75em 0.2em;
 }
 
@@ -61,6 +61,7 @@
 	color: #ffffff;
 	font-family: 'Yanone Kaffeesatz', sans-serif;
 	font-weight: 300;
+	font-size: 3em;
 	border-left: 1px solid white;
 	padding: 0.5em;
 }
