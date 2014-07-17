@@ -1,9 +1,14 @@
-#header{
-	border-bottom: 1px solid grey;
-}
+/******************
+General styles
+******************/
+/*Conventions:
+- 0.5em padding in all containers (all sides) - remember this adds to dimensions of div
+(setting a width is just for the content area) so for floated elements, add this to the contents
+and not to the container div
+- 0.3em padding between lines (either with padding or by setting line-height)*/
 
 /*For titles in the header of all pages (except homepage)*/
-#header h1{
+h1{
 	text-align: center;
 	color: #00CED1;
 	font-family: 'Yanone Kaffeesatz', sans-serif;
@@ -13,14 +18,22 @@
 	text-transform: uppercase;
 }
 
+/*For secondary headings*/
 h2 {
 	text-align: left;
 	color: #00CED1;
 	font-family: 'Yanone Kaffeesatz', sans-serif;
 	font-weight: 300;
 	font-size: 1.1em;
-	padding: 0.2em;
 	text-transform: uppercase;
+}
+
+/*For quotes and fun grey big text that shows personality*/
+h3{
+	color: #5c5c5c;
+	font-family: 'Yanone Kaffeesatz', sans-serif;
+	font-weight: 300;
+	font-size: 1.5em;
 }
 
 p {
@@ -29,13 +42,25 @@ p {
 	font-weight: 300;
 }
 
+
+label {
+	font-weight: 400;
+}
+
+
+#header{
+	border-bottom: 1px solid grey;
+	padding: 0.3em;
+}
+
+
 /******************
 HOMEPAGE
 ******************/
 
 section#home #header h1{
 	font-size: 2em;
-	padding: 0.2em;
+	padding:0.2em;
 }
 
 #take-a-photo img{
@@ -87,39 +112,62 @@ PROFILE
 ******************/
 #top-left {
 	float: left;
-	width: 49%;
+	width: 50%;
 	border-right: 1px solid #00CED1;
 }
 
-#top-right {
-	float: left;
-	width: 49%;
-	/*background-image:url('img/star.png');
-	background-repeat:no-repeat;
-	background-attachment:fixed;
-	background-position:bottom;*/
-}
-
-
-#important-dates {
-	clear: both;
-	border-top: 1px solid #00CED1;
-	border-bottom: 1px solid #00CED1;
-}
-
 #top-left img{
-  display: block;
-  margin-left: auto;
-  margin-right: auto;
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
 	max-height: 5em;
 	border-radius: 100%;
-	padding: 0.5em 0.2em;
+	padding: 0.5em;
 }
 
 #top-left p{
 	text-align: center;
 	padding-bottom: 0.5em;
 }
+
+#top-right {
+	float: left;
+	width: 49%;
+	height: 7.5em; /*matches top-left img + img padding + p + p padding*/
+	background-image: url("../img/star.png");
+	background-size: 2em;
+	background-repeat:no-repeat;
+	background-position: center 95%;
+}
+
+/*This formatting will break (the words will run into the star at the bottom of the div) if there are more than 3 lines of text*/
+#top-right h3{
+	width: 100%;
+	padding-top: 0.5em;
+	text-align: center;
+}
+
+#important-dates {
+	clear: both;
+	border-top: 1px solid #00CED1;
+	border-bottom: 1px solid #00CED1;
+	padding:0.5em;
+}
+
+#important-dates label {
+	padding: 0.2em;
+	line-height: 1.3em;
+}
+
+#cards-profile-display {
+	padding: 0.5em;
+	height: 150em; /*ZZZ | Added temporarily to give scrolling height for UX testing, to be removed & re-tested for production*/
+}
+
+#cards-profile-display h2{
+	line-height: 1.3em;
+}
+
 
 /******************
 FOOTER
@@ -154,10 +202,6 @@ FOOTER
 	padding: 0.3em;
 	text-decoration: none;
 }
-
-
-
-
 
 /******************
 COLOURS
