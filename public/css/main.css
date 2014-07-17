@@ -1,0 +1,195 @@
+#header{
+	border-bottom: 1px solid grey;
+}
+
+/*For titles in the header of all pages (except homepage)*/
+#header h1{
+	text-align: center;
+	color: #00CED1;
+	font-family: 'Yanone Kaffeesatz', sans-serif;
+	font-weight: 300;
+	font-size: 1.5em;
+	padding: 0.2em;
+	text-transform: uppercase;
+}
+
+h2 {
+	text-align: left;
+	color: #00CED1;
+	font-family: 'Yanone Kaffeesatz', sans-serif;
+	font-weight: 300;
+	font-size: 1.1em;
+	padding: 0.2em;
+	text-transform: uppercase;
+}
+
+p {
+	color: #5c5c5c;
+	font-family: 'Yanone Kaffeesatz', sans-serif;
+	font-weight: 300;
+}
+
+/******************
+HOMEPAGE
+******************/
+
+section#home #header h1{
+	font-size: 2em;
+	padding: 0.2em;
+}
+
+#take-a-photo img{
+	/*CSS for the take a photo button*/
+	display: block;
+	max-width: 45%;
+	margin: 0 auto;
+	padding: 0.7em 0;
+	/*end CSS for the take a photo button*/
+}
+
+
+#home-search-bar{
+	padding: 0.5em;
+}
+
+#home-search-bar input{
+	width: 70%;
+	color: #5c5c5c;
+	font-family: 'Yanone Kaffeesatz', sans-serif;
+	font-weight: 300;
+	font-size: 1.2em;
+	padding: 0.2em 2em;
+	/*margin-left: 1.5em;*/
+}
+
+
+#list-of-friends li{
+	clear:both;
+	height: 2.6em;
+	border-bottom: 1px solid #5c5c5c;
+}
+
+#list-of-friends li img{
+	float: left;
+	max-height: 2em; /*this + top-padding == #list-of-friends li height*/
+	border-radius: 100%; /*Makes the image circular*/
+	padding: 0.3em 0.2em;
+}
+
+#list-of-friends li p{
+	float:left;
+	font-size: 1em; /*this + top-padding == #list-of-friends li height*/
+	padding: 0.8em 0.5em;
+}
+
+/******************
+PROFILE
+******************/
+#top-left {
+	float: left;
+	width: 49%;
+	border-right: 1px solid #00CED1;
+}
+
+#top-right {
+	float: left;
+	width: 49%;
+	/*background-image:url('img/star.png');
+	background-repeat:no-repeat;
+	background-attachment:fixed;
+	background-position:bottom;*/
+}
+
+
+#important-dates {
+	clear: both;
+	border-top: 1px solid #00CED1;
+	border-bottom: 1px solid #00CED1;
+}
+
+#top-left img{
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+	max-height: 5em;
+	border-radius: 100%;
+	padding: 0.5em 0.2em;
+}
+
+#top-left p{
+	text-align: center;
+	padding-bottom: 0.5em;
+}
+
+/******************
+FOOTER
+******************/
+
+#footer {
+	clear:both;
+	width: 100%;
+	bottom: 0;
+  position: fixed; /*keeps this fixed at the bottom of the screen independently of scrolling*/
+}
+
+/*ZZZ | There shouldn't actually be any p text in the footer I don't think!*/
+#footer p {
+	display: inline-block;
+	color: #ffffff;
+	font-family: 'Yanone Kaffeesatz', sans-serif;
+	font-weight: 300;
+	font-size: 1em;
+	border-left: 1px solid white;
+	padding: 0.3em;
+}
+
+/*ZZZ | Temporary code just to make the links at the bottom look OK, needs to be finalised*/
+#footer a{
+	display: inline-block;
+	color: #ffffff;
+	font-family: 'Yanone Kaffeesatz', sans-serif;
+	font-weight: 300;
+	font-size: 1em;
+	border-left: 1px solid white;
+	padding: 0.3em;
+	text-decoration: none;
+}
+
+
+
+
+
+/******************
+COLOURS
+******************/
+
+#header {
+	background: #ffffff;
+	/*border-bottom: 1px solid #008888;*/
+}
+
+#take-a-photo {
+	background: #00CED1;
+}
+
+#search {
+	background: #ffffff;
+}
+
+/*Adding magnifying glass icon to search bar on homepage*/
+#home-search-bar input{
+	background-image: url("../img/search-icon.png");
+	background-repeat: no-repeat;
+	background-size: 1.5em;
+	background-position: left center;
+	border-top: 1px solid #008888;
+	border-bottom: 1px solid #008888;
+}
+
+#content {
+	/*background-image: url("../img/background-pattern.jpg");*/
+}
+
+#footer {
+	background: #00CED1;
+}
