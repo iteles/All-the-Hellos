@@ -1,0 +1,31 @@
+{
+  "name": "All-the-Hellos",
+  "version": "0.0.0",
+  "description": "A simple card tracking app built with Node and hapi.js on the backend",
+  "main": "index.js",
+  "scripts": {
+    "test": "./node_modules/lab/bin/lab -c && ./node_modules/lab/bin/lab -r html -o ./test/coverage.html"
+  },
+
+  "dependencies": {
+    "hapi": "6.x",
+    "lab": "3.2.x",
+    "joi": "4.6.x"
+  },
+
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/iteles/All-the-Hellos.git"
+  },
+  "keywords": [
+    "hapi",
+    "node",
+    "cards"
+  ],
+  "author": "I Teles",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/iteles/All-the-Hellos/issues"
+  },
+  "homepage": "https://github.com/iteles/All-the-Hellos"
+}
