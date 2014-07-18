@@ -142,8 +142,10 @@ PROFILE
 
 /*This formatting will break (the words will run into the star at the bottom of the div) if there are more than 3 lines of text*/
 #top-right h3{
-	width: 100%;
+	width: 95%;
 	padding-top: 0.5em;
+	margin-left: auto;
+	margin-right: auto;
 	text-align: center;
 }
 
@@ -166,6 +168,12 @@ PROFILE
 
 #cards-profile-display h2{
 	line-height: 1.3em;
+}
+
+#cards-profile-display img{
+	max-width:4em;
+	max-height:4em;
+	display: inline-block;
 }
 
 
