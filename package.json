@@ -10,7 +10,8 @@
   "dependencies": {
     "hapi": "6.x",
     "lab": "3.2.x",
-    "joi": "4.6.x"
+    "joi": "4.6.x",
+    "handlebars": "2.x"
   },
 
   "repository": {
