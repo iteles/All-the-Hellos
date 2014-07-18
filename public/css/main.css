@@ -171,9 +171,11 @@ PROFILE
 }
 
 #cards-profile-display img{
-	max-width:4em;
-	max-height:4em;
+	max-width:5em;
+	max-height:5em;
 	display: inline-block;
+	padding-top: 0.5em;
+/* ZZZ | Might want to find a way to center those landscape images vertically */
 }
 
 
