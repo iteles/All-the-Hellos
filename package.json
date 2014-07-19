@@ -6,14 +6,12 @@
   "scripts": {
     "test": "./node_modules/lab/bin/lab -c && ./node_modules/lab/bin/lab -r html -o ./test/coverage.html"
   },
-
   "dependencies": {
-    "hapi": "6.x",
-    "lab": "3.2.x",
-    "joi": "4.6.x",
-    "handlebars": "2.x"
+    "handlebars": "^2.0.0-alpha.4",
+    "hapi": "6.2.0",
+    "joi": "4.6.1",
+    "lab": "3.2.1"
   },
-
   "repository": {
     "type": "git",
     "url": "https://github.com/iteles/All-the-Hellos.git"
