@@ -6,17 +6,15 @@ var Joi = require('joi'); //remove if I end up not doing any validation here
 module.exports = [
   { path: '/{friendName}',
     method: 'GET',
-<<<<<<< HEAD
     config: {
       handler: viewFriendProfile,
       // view: "template-friend-profile.html"
     }
-=======
     // config: {
-      handler: viewFriendProfile,
+      //handler: viewFriendProfile,
       // view: "template-friend-profile.html"
     // }
->>>>>>> c3ac49ac46db5ae91812fb63384c01e75d1a9c1f
+
   }
 ];
 
@@ -26,7 +24,7 @@ function viewFriendProfile(request,reply){
   var name = request.params.friendName.split('/');
   reply("Hello "+ name[0]);
 }
-<<<<<<< HEAD
+
 
 
 //********* DATA for now in lieu of a database ***************
@@ -49,5 +47,3 @@ var friends = [
     cards: ['./img/card1.jpg', './img/card3.jpg']
   }
 ];
-=======
->>>>>>> c3ac49ac46db5ae91812fb63384c01e75d1a9c1f
