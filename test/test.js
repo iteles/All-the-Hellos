@@ -7,7 +7,7 @@ Lab.experiment("viewProfile", function(){
   lab.test("User details display correctly in View Profile", function(done){
     var options = {
       method: 'GET',
-      url: '/AnnaFinlayson'
+      url: '/friends/0'
     };
 
     server.inject(options, function(response){
