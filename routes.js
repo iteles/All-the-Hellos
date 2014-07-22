@@ -4,7 +4,7 @@ var Joi = require('joi'); //remove if I end up not doing any validation here
 //********* Routes to be exported by the module *********
 
 module.exports = [
-  { path: '/{id}',
+  { path: '/friends/{id}',
     method: 'GET',
     config: {
       handler: viewFriendProfile,
@@ -27,6 +27,7 @@ function viewFriendProfile(request, reply){
 
         reply(friends[id]);
         console.log('got here');
+        //this line of code below does nothing yet!
         reply.view('template-friend-profile.html');
   }
 
