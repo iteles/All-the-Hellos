@@ -7,8 +7,7 @@ module.exports = [
   { path: '/friends/{id}',
     method: 'GET',
     config: {
-      handler: viewFriendProfile,
-      // view: "template-friend-profile.html"
+      handler: viewFriendProfile
     }
   }
 ];
@@ -25,10 +24,10 @@ function viewFriendProfile(request, reply){
           return request.reply('No friend found, please try a different ID.').code(404);
         }
 
-        reply(friends[id]);
-        console.log('got here');
-        //this line of code below does nothing yet!
-        reply.view('template-friend-profile.html');
+        //reply(friends[id]);
+        //passing the result that we want to the template as context
+        reply.view('template-friend-profile.html', friends[id]);
+
   }
 
 
@@ -37,19 +36,19 @@ function viewFriendProfile(request, reply){
 var friends = [
   { firstName:'Anna',
     lastName: 'Finlayson',
-    photo: "./img/person1.jpg",
+    photo: "public/img/person1.jpg",
     relationship: 'friend',
     gender: 'female',
     birthday: '24-October-1989',
     anniversary: '4-November-2013',
-    cards: ['./img/card1.jpg', './img/card2.jpg', './img/card3.jpg', './img/card4.jpg' ] //not sure if this is the right was to add this data!
+    cards: ['public/img/card1.jpg', 'public/img/card2.jpg', 'public/img/card3.jpg', 'public/img/card4.jpg' ] //not sure if this is the right was to add this data!
   },
   { firstName:'Tyler',
     lastName: 'Durden',
-    photo: "./img/person2.jpg",
+    photo: "public/img/person2.jpg",
     relationship: 'brother',
     gender: 'male',
     birthday: '21-March-1978',
-    cards: ['./img/card1.jpg', './img/card3.jpg']
+    cards: ['public/img/card1.jpg', 'public/img/card3.jpg']
   }
 ];

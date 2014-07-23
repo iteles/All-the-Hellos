@@ -4,11 +4,15 @@ var routes = require(__dirname + '/routes.js');
 
 var serverOptions = {
        views: {
-         //path.join might be necessary for it to recognise that we are in the current directory (__dirname) +/templates
-           path: path.join(__dirname + './templates'),
+
+           basePath: __dirname,
+           path: './views', //this is the templates directory
+
            engines: {
                html: require('handlebars')
-           }
+           },
+
+           isCached: 'false' //ZZZZ | Change to true in Production
        }
    };
 
