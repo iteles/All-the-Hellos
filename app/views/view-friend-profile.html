@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" ng-app>
+<head>
+  <meta charset = "utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+  <link rel="stylesheet" type="text/css" href="../public/css/reset.css">
+  <link rel="stylesheet" type="text/css" href="../public/css/main.css">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.4/angular.min.js">
+</script>
+
+  <!-- Adding google fonts -->
+  <link href='http://fonts.googleapis.com/css?family=Yanone+Kaffeesatz:400,700,300,200' rel='stylesheet' type='text/css'>
+</head>
+
+<body ng-controller='ProfileController'>
+
+<!-- ********************
+VIEW FRIEND PROFILE
+************************ -->
+
+  <section id="profile">
+    <!-- Toolbar including title, back button and other navigation buttons -->
+    <div id="header">
+      <h1> {{friend.firstName }} {{friend.lastName}} </h1>
+    </div>
+
+    <!-- Main body of page -->
+    <div id="content">
+      <div id=top-left>
+        <img ng-src="{{friend.photo}}" title="Friend's profile photo">
+        <p>{{friend.relationship}}</p>
+      </div>
+
+      <div id=top-right>
+        <!-- Should be at most 3 lines or breaks formatting -->
+        <!-- ZZZ | This comment will have to vary - for now it could vary based on no cards sent and >1 cards sent -->
+        <h3>Text goes here!</h3>
+      </div>
+
+<!-- this will need to be updated to an array directive -->
+      <div id=important-dates>
+        <p><label>BIRTHDAY:</label> {{friend.birthday}}</p>
+        <p><label>ANNIVERSARY:</label> {{friend.anniversary}}</p>
+      </div>
+
+      <div id=cards-profile-display>
+        <h2>CARDS I HAVE SENT {{friend.firstName}} {{friend.lastName}}</h2>
+        <!-- Images also uploaded here (4 cards): http://imgur.com/yOG825o,mzxAXeD,tWWuCnH,uAiy86O -->
+        <!-- ZZZ | cards will need to be pulled into here somehow -->
+        <img src="" title="Card 1">
+      </div>
+
+
+    </div> <!-- End of content div -->
+
+    <div id="footer">
+      <a href="index.html"> Home </a>
+      <a href="/"> Edit Friend </a>
+      <!-- ZZZ | Missing links here to add a new card to this person -->
+    </div>
+  </section><!-- End of profile -->
+
+
+
+</body>
+</html>
