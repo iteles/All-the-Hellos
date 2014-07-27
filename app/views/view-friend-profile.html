@@ -39,22 +39,22 @@ VIEW FRIEND PROFILE
         <h3>Text goes here!</h3>
       </div>
 
-<!-- this will need to be updated to an array directive -->
-      <div id=important-dates>
-        <p><label>BIRTHDAY:</label> {{friend.birthday}}</p>
-        <p><label>ANNIVERSARY:</label> {{friend.anniversary}}</p>
+      <!-- ZZZ | this will need to be updated to an array directive -->
+      <div id=important-dates ng-repeat>
+        <p><label>{{friend.dates.label}}</label> {{friend.dates.birthday}}</p>
       </div>
 
       <div id=cards-profile-display>
         <h2>CARDS I HAVE SENT {{friend.firstName}} {{friend.lastName}}</h2>
         <!-- Images also uploaded here (4 cards): http://imgur.com/yOG825o,mzxAXeD,tWWuCnH,uAiy86O -->
-        <!-- ZZZ | cards will need to be pulled into here somehow -->
-        <img src="" title="Card 1">
+        <div ng-repeat> <!--ZZZZ | At the moment this div exists only for the ng-repeat property -->
+          <img ng-src="{{cards.cardURL}}" title="{{cards.card-title}}">
+        </div>
       </div>
 
 
     </div> <!-- End of content div -->
-
+    <!-- ZZZ | These links could also be put in dynamically through Angular based on the page -->
     <div id="footer">
       <a href="index.html"> Home </a>
       <a href="/"> Edit Friend </a>
