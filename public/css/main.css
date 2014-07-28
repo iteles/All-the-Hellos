@@ -156,6 +156,13 @@ PROFILE
 	padding:0.5em;
 }
 
+#important-dates ul {
+	list-style-type: none;
+	color: #5c5c5c;
+	font-family: 'Yanone Kaffeesatz', sans-serif;
+	font-weight: 300;
+}
+
 #important-dates label {
 	padding: 0.2em;
 	line-height: 1.3em;
