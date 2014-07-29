@@ -40,16 +40,19 @@ VIEW FRIEND PROFILE
       </div>
 
       <!-- ZZZ | this will need to be updated to an array directive -->
-      <div id=important-dates ng-repeat>
-        <p><label>{{friend.dates.label}}</label> {{friend.dates.birthday}}</p>
+      <div id=important-dates>
+        <!-- ZZZZ | Turn this into a ul and use ng-repeat, updating CSS too -->
+        <ul ng-repeat>
+          <li><label>{{friend.dates.label}}</label> {{friend.dates.birthday}}</li>
+        </ul>
       </div>
 
       <div id=cards-profile-display>
         <h2>CARDS I HAVE SENT {{friend.firstName}} {{friend.lastName}}</h2>
         <!-- Images also uploaded here (4 cards): http://imgur.com/yOG825o,mzxAXeD,tWWuCnH,uAiy86O -->
-        <div ng-repeat> <!--ZZZZ | At the moment this div exists only for the ng-repeat property -->
-          <img ng-src="{{cards.cardURL}}" title="{{cards.card-title}}">
-        </div>
+        <ul ng-repeat>
+          <li><img ng-src="{{cards.cardURL}}" title="{{cards.card-title}}"></li>
+        </ul>
       </div>
 
 
