@@ -14,7 +14,7 @@
   <link href='http://fonts.googleapis.com/css?family=Yanone+Kaffeesatz:400,700,300,200' rel='stylesheet' type='text/css'>
 </head>
 
-<body ng-controller='ProfileController'>
+<body>
 
 <!-- ********************
 VIEW FRIEND PROFILE
@@ -22,32 +22,32 @@ VIEW FRIEND PROFILE
 
   <section id="profile">
     <!-- Toolbar including title, back button and other navigation buttons -->
-    <div id="header">
+    <div id="header" ng-controller='HeaderController'>
       <h1> {{friend.firstName }} {{friend.lastName}} </h1>
     </div>
 
     <!-- Main body of page -->
     <div id="content">
-      <div id=top-left>
+      <div id=top-left ng-controller='FriendPhotoController'>
         <img ng-src="{{friend.photo}}" title="Friend's profile photo">
         <p>{{friend.relationship}}</p>
       </div>
 
-      <div id=top-right>
+      <div id=top-right ng-controller='ProfileMessageController'>
         <!-- Should be at most 3 lines or breaks formatting -->
         <!-- ZZZ | This comment will have to vary - for now it could vary based on no cards sent and >1 cards sent -->
         <h3>Text goes here!</h3>
       </div>
 
       <!-- ZZZ | this will need to be updated to an array directive -->
-      <div id=important-dates>
+      <div id=important-dates ng-controller='ImportantDatesController'>
         <!-- ZZZZ | Turn this into a ul and use ng-repeat, updating CSS too -->
         <ul ng-repeat>
           <li><label>{{friend.dates.label}}</label> {{friend.dates.birthday}}</li>
         </ul>
       </div>
 
-      <div id=cards-profile-display>
+      <div id=cards-profile-display ng-controller='CardsDisplayController'>
         <h2>CARDS I HAVE SENT {{friend.firstName}} {{friend.lastName}}</h2>
         <!-- Images also uploaded here (4 cards): http://imgur.com/yOG825o,mzxAXeD,tWWuCnH,uAiy86O -->
         <ul ng-repeat>
@@ -58,7 +58,7 @@ VIEW FRIEND PROFILE
 
     </div> <!-- End of content div -->
     <!-- ZZZ | These links could also be put in dynamically through Angular based on the page -->
-    <div id="footer">
+    <div id="footer" ng-controller='FooterController'>
       <a href="index.html"> Home </a>
       <a href="/"> Edit Friend </a>
       <!-- ZZZ | Missing links here to add a new card to this person -->
