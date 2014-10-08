@@ -32,20 +32,22 @@
       </div>
 
       <!-- Section to find friends from the main page -->
-      <div id="search" ng-controller="SearchController">
+      <div id="search">
         <form id="home-search-bar">
           <input type="text" name="search-term" placeholder="Find a lucky friend..."/>
         </form>
 
         <!--List of friends that changes as the user is typing-->
-        <ul id="list-of-friends" ng-controller="FriendListController" ng-repeat="friend in friends">
-          <li><img ng-src="{{friend.photo}}"><a ng-href="{{friend.profileURL}}">{{friend.firstName}} {{friend.lastName}}</a></li>
+        <ul id="list-of-friends" ng-controller="FriendListController">
+          <li  ng-repeat="friend in friends">
+            <img ng-src="{{friend.photo}}"><a ng-href="{{friend.profileURL}}">{{friend.firstName}} {{friend.lastName}}</a>
+          </li>
         </ul>
       </div>
     </div> <!-- End of content div -->
 
 <!-- ZZZ | These links could also be put in dynamically through Angular based on the page -->
-    <div id="footer" ng-controller='FooterController'>
+    <div id="footer">
       <p> Sign in </p>
       <p> Add friend </p>
     </div>
@@ -53,10 +55,5 @@
 
   <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.4/angular.min.js"></script>
   <script src="main.js"></script>
-
-
-
-
-
 </body>
 </html>

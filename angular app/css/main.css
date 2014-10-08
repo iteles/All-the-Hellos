@@ -36,7 +36,7 @@ h3{
 	font-size: 1.5em;
 }
 
-p {
+p, a {
 	color: #5c5c5c;
 	font-family: 'Yanone Kaffeesatz', sans-serif;
 	font-weight: 300;
@@ -101,7 +101,7 @@ section#home #header h1{
 	padding: 0.3em 0.2em;
 }
 
-#list-of-friends li p{
+#list-of-friends li a{
 	float:left;
 	font-size: 1em; /*this + top-padding == #list-of-friends li height*/
 	padding: 0.8em 0.5em;

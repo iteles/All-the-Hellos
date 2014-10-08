@@ -10,19 +10,19 @@ appModule.controller("FriendListController",function($scope) {
 var friendsdb = [
   { firstName:'Anna',
     lastName: 'Finlayson',
-    photo: "public/img/person1.jpg",
+    photo: "img/person1.jpg",
     relationship: 'friend',
     gender: 'female',
     birthday: '24-October-1989',
     anniversary: '4-November-2013',
-    cards: ['public/img/card1.jpg', 'public/img/card2.jpg', 'public/img/card3.jpg', 'public/img/card4.jpg' ] //not sure if this is the right was to add this data!
+    cards: ['/img/card1.jpg', '/img/card2.jpg', '/img/card3.jpg', '/img/card4.jpg' ] //not sure if this is the right was to add this data!
   },
   { firstName:'Tyler',
     lastName: 'Durden',
-    photo: "public/img/person2.jpg",
+    photo: "img/person2.jpg",
     relationship: 'brother',
     gender: 'male',
     birthday: '21-March-1978',
-    cards: ['public/img/card1.jpg', 'public/img/card3.jpg']
+    cards: ['/img/card1.jpg', '/img/card3.jpg']
   }
 ];
