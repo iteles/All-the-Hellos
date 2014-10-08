@@ -7,16 +7,21 @@ appModule.controller("FriendListController",function($scope) {
 
 appModule.controller("FriendInfoController",function($scope) {
     $scope.friend = friendsdb[0];
-    //this controller needs to display the info for ONE friend WITHOUT being hardcoded as it is now
+    //ZZZ - this controller needs to display the info for THE friend selected WITHOUT being hardcoded as it is now
 });
 
 appModule.controller("CardsDisplayController", function($scope){
     $scope.cards = friendsdb[0].cards;
-      //this controller needs to display the info for ONE friend WITHOUT being hardcoded as it is now
+      //this controller needs to display the info for THE friend selected WITHOUT being hardcoded as it is now
 });
 
 appModule.controller('ProfileMessageController', function($scope){
-    //TBD
+    // if(friendsdb[0].cards.length()<1){
+    //   $scope.profile.Message = 'Yay!';
+    // }
+    // else{
+    //   $scope.profileMessage = 'No cards yet!';
+    // }
 });
 
 appModule.controller('ImportantDatesController', function($scope){
@@ -33,7 +38,7 @@ var friendsdb = [
     gender: 'female',
     birthday: '24-October-1989',
     anniversary: '4-November-2013',
-    cards: [{cardURL:'img/card1.jpg'},{cardURL:'img/card2.jpg'},{cardURL:'img/card3.jpg'},{cardURL:'img/card4.jpg'}, ] //not sure if this is the right was to add this data!
+    cards: ["img/card1.jpg","img/card2.jpg","img/card3.jpg", "img/card4.jpg"]
   },
   { firstName:'Tyler',
     lastName: 'Durden',
@@ -41,6 +46,6 @@ var friendsdb = [
     relationship: 'brother',
     gender: 'male',
     birthday: '21-March-1978',
-    cards: [{cardURL:'img/card1.jpg'},{cardURL:'img/card3.jpg'},]
+    cards: ["img/card1.jpg","img/card3.jpg"]
   }
 ];

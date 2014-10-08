@@ -36,7 +36,7 @@ VIEW FRIEND PROFILE
       <div id=top-right ng-controller='ProfileMessageController'>
         <!-- Should be at most 3 lines or breaks formatting -->
         <!-- ZZZ | This comment will have to vary - for now it could vary based on no cards sent and >1 cards sent -->
-        <h3>Text goes here!</h3>
+        <h3>{{profileMessage}} Learn how to use controllers!</h3>
       </div>
 
       <!-- ZZZ | this will need to be updated to an array directive -->
@@ -50,8 +50,9 @@ VIEW FRIEND PROFILE
       <div id=cards-profile-display>
         <h2>CARDS I HAVE SENT {{friend.firstName}} {{friend.lastName}}</h2>
         <!-- Images also uploaded here (4 cards): http://imgur.com/yOG825o,mzxAXeD,tWWuCnH,uAiy86O -->
-        <ul ng-controller='CardsDisplayController'>
-          <li ng-repeat="card in cards"><img ng-src="{{card.cardURL}}"></li>
+        <ul> <!--ng-controller='CardsDisplayController -->
+          <li ng-repeat="card in friend.cards">
+            <img ng-src="{{card}}"></li>
         </ul>
       </div>
 
@@ -65,7 +66,8 @@ VIEW FRIEND PROFILE
     </div>
   </section><!-- End of profile -->
 
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.4/angular.min.js"></script>
+  <!-- Angular script apparently picked up from index.html so having it here duplicates actions like ng-repeat -->
+  <!--  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.4/angular.min.js"></script> -->
     <script src="main.js"></script>
   </body>
 </html>
