@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="allTheHellos">
+<head>
+  <meta charset = "utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+  <link rel="stylesheet" type="text/css" href="./css/reset.css">
+  <link rel="stylesheet" type="text/css" href="./css/main.css">
+
+  <!-- Adding google fonts -->
+  <link href='http://fonts.googleapis.com/css?family=Yanone+Kaffeesatz:400,700,300,200' rel='stylesheet' type='text/css'>
+</head>
+
+<body>
+
+<!-- ********************
+  HOME PAGE
+************************ -->
+
+        <!--List of friends that changes as the user is typing-->
+        <ul id="list-of-friends" ng-controller="FriendListController">
+          <li ng-repeat="friend in friends">
+            <!-- <img ng-src="{{friend.photo}}"><a ng-href="{{friend.profileURL}}"> -->
+            {{friend.firstName}} {{friend.lastName}}  
+          <!-- </a> -->
+            </li>
+        </ul>
+      </div>
+    </div> <!-- End of content div -->
+
+<!-- ZZZ | These links could also be put in dynamically through Angular based on the page -->
+    <div id="footer">
+      <p> Sign in </p>
+      <p> Add friend </p>
+    </div>
+  </section><!-- End of homepage -->
+
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.4/angular.min.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

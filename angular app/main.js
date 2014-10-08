@@ -1,13 +1,13 @@
-var appModule = angular.module("allTheHellos",[]);
+var appModule = angular.module('allTheHellos',[]);
 
 appModule.controller("FriendListController",function($scope) {
-  $scope.friends = friends;
+    $scope.friends = friendsdb;
 });
 
 
 
 //********* DATA for now in lieu of a database ***************
-var friends = [
+var friendsdb = [
   { firstName:'Anna',
     lastName: 'Finlayson',
     photo: "public/img/person1.jpg",
