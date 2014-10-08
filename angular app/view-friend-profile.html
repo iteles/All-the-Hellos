@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" ng-app>
+<html lang="en" ng-app="allTheHellos">
 <head>
   <meta charset = "utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
@@ -20,15 +20,15 @@
 VIEW FRIEND PROFILE
 ************************ -->
 
-  <section id="profile">
+  <section id="profile" ng-controller="FriendInfoController">
     <!-- Toolbar including title, back button and other navigation buttons -->
-    <div id="header" ng-controller='HeaderController'>
+    <div id="header" >
       <h1> {{friend.firstName }} {{friend.lastName}} </h1>
     </div>
 
     <!-- Main body of page -->
     <div id="content">
-      <div id=top-left ng-controller='FriendPhotoController'>
+      <div id=top-left>
         <img ng-src="{{friend.photo}}" title="Friend's profile photo">
         <p>{{friend.relationship}}</p>
       </div>
@@ -47,27 +47,25 @@ VIEW FRIEND PROFILE
         </ul>
       </div>
 
-      <div id=cards-profile-display ng-controller='CardsDisplayController'>
+      <div id=cards-profile-display>
         <h2>CARDS I HAVE SENT {{friend.firstName}} {{friend.lastName}}</h2>
         <!-- Images also uploaded here (4 cards): http://imgur.com/yOG825o,mzxAXeD,tWWuCnH,uAiy86O -->
-        <ul ng-repeat>
-          <li><img ng-src="{{cards.cardURL}}" title="{{cards.card-title}}"></li>
+        <ul ng-controller='CardsDisplayController'>
+          <li ng-repeat="card in cards"><img ng-src="{{card.cardURL}}"></li>
         </ul>
       </div>
 
 
     </div> <!-- End of content div -->
     <!-- ZZZ | These links could also be put in dynamically through Angular based on the page -->
-    <div id="footer" ng-controller='FooterController'>
+    <div id="footer">
       <a href="index.html"> Home </a>
       <a href="/"> Edit Friend </a>
       <!-- ZZZ | Missing links here to add a new card to this person -->
     </div>
   </section><!-- End of profile -->
 
-  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.4/angular.min.js"></script>
-  <script src="main.js"></script>
-
-
-</body>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.4/angular.min.js"></script>
+    <script src="main.js"></script>
+  </body>
 </html>
