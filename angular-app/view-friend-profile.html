@@ -7,9 +7,6 @@
   <link rel="stylesheet" type="text/css" href="../public/css/reset.css">
   <link rel="stylesheet" type="text/css" href="../public/css/main.css">
 
-  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.4/angular.min.js">
-</script>
-
   <!-- Adding google fonts -->
   <link href='http://fonts.googleapis.com/css?family=Yanone+Kaffeesatz:400,700,300,200' rel='stylesheet' type='text/css'>
 </head>
@@ -42,8 +39,8 @@ VIEW FRIEND PROFILE
       <!-- ZZZ | this will need to be updated to an array directive -->
       <div id=important-dates ng-controller='ImportantDatesController'>
         <!-- ZZZZ | Turn this into a ul and use ng-repeat, updating CSS too -->
-        <ul ng-repeat>
-          <li><label>{{friend.dates.label}}</label> {{friend.dates.birthday}}</li>
+        <ul ng-repeat="date in dates">
+          <li><label>{{date.label}}:</label> {{date.date | date:'dd-MMM-yyyy'}}</li>
         </ul>
       </div>
 
@@ -67,8 +64,7 @@ VIEW FRIEND PROFILE
     </div>
   </section><!-- End of profile -->
 
-  <!-- Angular script apparently picked up from index.html so having it here duplicates actions like ng-repeat -->
-  <!--  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.4/angular.min.js"></script> -->
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js"></script>
     <script src="main.js"></script>
   </body>
 </html>

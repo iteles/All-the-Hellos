@@ -25,7 +25,10 @@ appModule.controller('ProfileMessageController', function($scope){
 });
 
 appModule.controller('ImportantDatesController', function($scope){
-    //TBD
+    $scope.dates = friendsdb[0].dates;
+      //this controller needs to display the info for THE friend selected WITHOUT being hardcoded as it is now
+
+      //ZZZ - Custom capitalization filter to review: http://puigcerber.com/2014/05/06/angularjs-capitalize-filter/
 });
 
 
@@ -36,8 +39,9 @@ var friendsdb = [
     photo: "img/person1.jpg",
     relationship: 'friend',
     gender: 'female',
-    birthday: '24-October-1989',
-    anniversary: '4-November-2013',
+    dates: [ //ISO 8601 datetime string formats - lots of validation will be required here
+      {label: 'birthday', date: '1989-10-24'},
+      {label: 'anniversary', date: '2013-11-04'}],
     cards: ["img/card1.jpg","img/card2.jpg","img/card3.jpg", "img/card4.jpg"]
   },
   { firstName:'Tyler',
