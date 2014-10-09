@@ -48,7 +48,8 @@ VIEW FRIEND PROFILE
       </div>
 
       <div id=cards-profile-display>
-        <h2>CARDS I HAVE SENT {{friend.firstName}} {{friend.lastName}}</h2>
+        <h2 ng-show="friend.cards.length">CARDS I HAVE SENT {{friend.firstName}} {{friend.lastName}}</h2>
+        <h2 ng-hide="friend.cards.length">You haven't sent {{friend.firstName}} any cards yet! </h2>
         <!-- Images also uploaded here (4 cards): http://imgur.com/yOG825o,mzxAXeD,tWWuCnH,uAiy86O -->
         <ul> <!--ng-controller='CardsDisplayController -->
           <li ng-repeat="card in friend.cards">
