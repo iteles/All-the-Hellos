@@ -33,7 +33,7 @@ VIEW FRIEND PROFILE
       <div id=top-right ng-controller='ProfileMessageController'>
         <!-- Should be at most 3 lines or breaks formatting -->
         <!-- ZZZ | This comment will have to vary - for now it could vary based on no cards sent and >1 cards sent -->
-        <h3>{{profileMessage}} Learn how to use controllers!</h3>
+        <h3>{{profileMessage}}</h3>
       </div>
 
       <!-- ZZZ | this will need to be updated to an array directive -->
@@ -46,7 +46,7 @@ VIEW FRIEND PROFILE
 
       <div id=cards-profile-display>
         <h2 ng-show="friend.cards.length">CARDS I HAVE SENT {{friend.firstName}} {{friend.lastName}}</h2>
-        <h2 ng-hide="friend.cards.length">You haven't sent {{friend.firstName}} any cards yet! </h2>
+        <h2 ng-hide="friend.cards.length">You haven't sent {{friend.firstName}} any cards yet</h2>
         <!-- Images also uploaded here (4 cards): http://imgur.com/yOG825o,mzxAXeD,tWWuCnH,uAiy86O -->
         <ul> <!--ng-controller='CardsDisplayController -->
           <li ng-repeat="card in friend.cards">

@@ -16,12 +16,13 @@ appModule.controller("CardsDisplayController", function($scope){
 });
 
 appModule.controller('ProfileMessageController', function($scope){
-    // if(friendsdb[0].cards.length()<1){
-    //   $scope.profile.Message = 'Yay!';
-    // }
-    // else{
-    //   $scope.profileMessage = 'No cards yet!';
-    // }
+  //this controller needs to display the info for THE friend selected WITHOUT being hardcoded as it is now
+    if(friendsdb[0].cards.length){
+      $scope.profileMessage = 'Yay! You\'re a great friend';
+    }
+    else{
+      $scope.profileMessage = 'No cards yet!';
+    }
 });
 
 appModule.controller('ImportantDatesController', function($scope){
@@ -49,7 +50,18 @@ var friendsdb = [
     photo: "img/person2.jpg",
     relationship: 'brother',
     gender: 'male',
-    birthday: '21-March-1978',
+    dates: [ //ISO 8601 datetime string formats - lots of validation will be required here
+      {label: 'birthday', date: '1978-03-21'} ],
     cards: ["img/card1.jpg","img/card3.jpg"]
+  },
+  { firstName:'Sammy',
+    lastName: 'NoCards',
+    photo: "img/person3.jpg",
+    relationship: 'strangerdanger',
+    gender: 'female',
+    dates: [ //ISO 8601 datetime string formats - lots of validation will be required here
+      {label: 'women\'s day', date: '2014-03-08'},
+      ],
+    cards: []
   }
 ];
