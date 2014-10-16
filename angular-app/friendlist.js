@@ -26,7 +26,7 @@ var friendsModule = angular.module('FriendsModule', []);
         },
         { id: 3,
           firstName:'Sammy',
-          lastName: 'NoCards',
+          lastName: 'NewName',
           photo: "img/person3.jpg",
           relationship: 'strangerdanger',
           gender: 'female',
