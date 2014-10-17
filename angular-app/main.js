@@ -1,31 +1,24 @@
 var appModule = angular.module('allTheHellos',['FriendsModule', 'ngRoute']);
 
-appModule.config(function($routeProvider) {
+appModule.config([ '$routeProvider', function($routeProvider) {
   $routeProvider
   .when("/",
-    { templateUrl: "home.html"})
-  .when("/friend",
-    { templateUrl: "view-profile.html"})
+    { templateUrl: 'home.html'})
+  .when('/view-profile/:id',
+    { controller: 'FriendInfoController',
+    templateUrl: 'view-profile.html'})
   .otherwise({ templateUrl: "404.html"});
-});
+}]);
 
 appModule.controller("FriendListController",function($scope, Friendlist) {
     $scope.friends = Friendlist;
     //pulls the info for all friends
 });
 
-appModule.controller("FriendInfoController", function($scope, Friendlist) {
-    //console.log('friendlist data: '+ Friendlist[1].lastName);
-    // Friendlist.map(function(f){
-    //   console.log(f.lastName);
-    // })
-    $scope.friend = Friendlist[0];
-    //ZZZ - this controller needs to display the info for THE friend selected WITHOUT being hardcoded as it is now
-});
-
-appModule.controller("CardsDisplayController", function($scope, Friendlist){
-    $scope.cards = Friendlist[0].cards;
-      //this controller needs to display the info for THE friend selected WITHOUT being hardcoded as it is now
+appModule.controller("FriendInfoController", function($scope, Friendlist, $routeParams) {
+    //console.log('$routeParams is: '+ $routeParams.id);
+    $scope.friend = Friendlist[$routeParams.id - 1];
+    //ZZZ - this array ID is precarious, what if the person's id is 64 but they're in the array at position 30 for some reason?
 });
 
 appModule.controller('ProfileMessageController', function($scope, Friendlist){
