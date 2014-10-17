@@ -17,44 +17,17 @@
   HOME PAGE
 ************************ -->
 
-  <section id="home">
-    <!-- Toolbar including title, back button and other navigation buttons -->
-    <div id="header">
-      <h1> ALL THE HELLOS </h1>
-    </div>
-
-    <!-- Main body of page -->
-    <div id="content">
-      <!-- Take a photo section -->
-      <!-- ZZZ | This will need to actually do something -->
-      <div id="take-a-photo">
-        <img src="./img/take-a-photo-white.png"/>
-      </div>
-
-      <!-- Section to find friends from the main page -->
-      <div id="search">
-        <form id="home-search-bar">
-          <input type="text" name="search-term" placeholder="Find a lucky friend..."/>
-        </form>
-
-        <!--List of friends that changes as the user is typing-->
-        <ul id="list-of-friends" ng-controller="FriendListController">
-          <li  ng-repeat="friend in friends">
-            <img ng-src="{{friend.photo}}"><a ng-href="{{friend.profileURL}}">{{friend.firstName}} {{friend.lastName}}</a>
-          </li>
-        </ul>
-      </div>
-    </div> <!-- End of content div -->
+  <div ng-view id="mainpage">
 
 <!-- ZZZ | These links could also be put in dynamically through Angular based on the page -->
-    <div id="footer">
+    <section id="footer">
       <p> Sign in </p>
       <p> Add friend </p>
       <p><a href="/view-friend-profile.html"> See friend - TEMP </a></p>
-    </div>
-  </section><!-- End of homepage -->
+    </section>
 
   <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular.min.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.2.26/angular-route.js"></script>
   <script src="friendlist.js"></script>
   <script src="main.js"></script>
 </body>

@@ -1,0 +1,28 @@
+<!-- Toolbar including title, back button and other navigation buttons -->
+<section id="header">
+  <h1> ALL THE HELLOS </h1>
+</section>
+
+<!-- Main body of page -->
+<section id="content">
+  <!-- Take a photo section -->
+  <!-- ZZZ | This will need to actually do something -->
+  <div id="take-a-photo">
+    <img src="./img/take-a-photo-white.png"/>
+  </div>
+
+  <!-- Section to find friends from the main page -->
+  <div id="search">
+    <form id="home-search-bar">
+      <input type="text" name="search-term" placeholder="Find a lucky friend..."/>
+    </form>
+
+    <!--List of friends that changes as the user is typing-->
+    <ul id="list-of-friends" ng-controller="FriendListController">
+      <li  ng-repeat="friend in friends">
+        <img ng-src="{{friend.photo}}"><a ng-href="/view-profile/{{friend.id}}">{{friend.firstName}} {{friend.lastName}}</a>
+      </li>
+    </ul>
+  </div>
+</section> <!-- End of content section -->
+</div><!-- End of mainpage div-->
