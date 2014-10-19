@@ -1,20 +1,6 @@
-var appModule = angular.module('allTheHellos',['FriendsModule', 'ngRoute']);
-
-appModule.config([ '$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
-  $routeProvider
-    .when("/",{
-      templateUrl: 'home.html'
-    })
-    .when('/view-profile/:id',{
-      controller: 'FriendInfoController',
-      templateUrl: 'view-profile.html'
-    })
-    .otherwise({
-      templateUrl: "404.html"
-    });
-
-  $locationProvider.html5Mode(true);
-}]);
+var appModule = angular.module('allTheHellos',['FriendsModule', 'allTheHellosConfig']);
+//FriendsModule contains the dummy data factory for now
+//allTheHellosConfig contains routes
 
 appModule.controller("FriendListController",['$scope', 'Friendlist', function($scope, Friendlist) {
     $scope.friends = Friendlist;
