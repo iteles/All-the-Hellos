@@ -1,0 +1,259 @@
+/******************
+General styles
+******************/
+/*Conventions:
+- 0.5em padding in all containers (all sides) - remember this adds to dimensions of div
+(setting a width is just for the content area) so for floated elements, add this to the contents
+and not to the container div
+- 0.3em padding between lines (either with padding or by setting line-height)*/
+
+/*For titles in the header of all pages (except homepage)*/
+h1{
+	text-align: center;
+	color: #00CED1;
+	font-family: 'Yanone Kaffeesatz', sans-serif;
+	font-weight: 300;
+	font-size: 1.5em;
+	padding: 0.2em;
+	text-transform: uppercase;
+}
+
+/*For secondary headings*/
+h2 {
+	text-align: left;
+	color: #00CED1;
+	font-family: 'Yanone Kaffeesatz', sans-serif;
+	font-weight: 300;
+	font-size: 1.1em;
+	text-transform: uppercase;
+}
+
+/*For quotes and fun grey big text that shows personality*/
+h3{
+	color: #5c5c5c;
+	font-family: 'Yanone Kaffeesatz', sans-serif;
+	font-weight: 300;
+	font-size: 1.5em;
+}
+
+p, a {
+	color: #5c5c5c;
+	font-family: 'Yanone Kaffeesatz', sans-serif;
+	font-weight: 300;
+}
+
+
+label {
+	font-weight: 400;
+}
+
+
+#header{
+	border-bottom: 1px solid grey;
+	padding: 0.3em;
+}
+
+
+/******************
+HOMEPAGE
+******************/
+
+section#home #header h1{
+	font-size: 2em;
+	padding:0.2em;
+}
+
+#take-a-photo img{
+	/*CSS for the take a photo button*/
+	display: block;
+	max-width: 45%;
+	margin: 0 auto;
+	padding: 0.7em 0;
+	/*end CSS for the take a photo button*/
+}
+
+
+#home-search-bar{
+	padding: 0.5em;
+}
+
+#home-search-bar input{
+	width: 70%;
+	color: #5c5c5c;
+	font-family: 'Yanone Kaffeesatz', sans-serif;
+	font-weight: 300;
+	font-size: 1.2em;
+	padding: 0.2em 2em;
+	/*margin-left: 1.5em;*/
+}
+
+
+#list-of-friends li{
+	clear:both;
+	height: 2.6em;
+	border-bottom: 1px solid #5c5c5c;
+}
+
+#list-of-friends li img{
+	float: left;
+	max-height: 2em; /*this + top-padding == #list-of-friends li height*/
+	border-radius: 100%; /*Makes the image circular*/
+	padding: 0.3em 0.2em;
+}
+
+#list-of-friends li a{
+	float:left;
+	font-size: 1em; /*this + top-padding == #list-of-friends li height*/
+	padding: 0.8em 0.5em;
+}
+
+/******************
+PROFILE
+******************/
+#top-left {
+	float: left;
+	width: 50%;
+	border-right: 1px solid #00CED1;
+}
+
+#top-left img{
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	max-height: 5em;
+	border-radius: 100%;
+	padding: 0.5em;
+}
+
+#top-left p{
+	text-align: center;
+	padding-bottom: 0.5em;
+}
+
+#top-right {
+	float: left;
+	width: 49%;
+	height: 7.5em; /*matches top-left img + img padding + p + p padding*/
+	background-image: url("../img/star.png");
+	background-size: 2em;
+	background-repeat:no-repeat;
+	background-position: center 95%;
+}
+
+/*This formatting will break (the words will run into the star at the bottom of the div) if there are more than 3 lines of text*/
+#top-right h3{
+	width: 95%;
+	padding-top: 0.5em;
+	margin-left: auto;
+	margin-right: auto;
+	text-align: center;
+}
+
+#important-dates {
+	clear: both;
+	border-top: 1px solid #00CED1;
+	border-bottom: 1px solid #00CED1;
+	padding:0.5em;
+}
+
+#important-dates ul {
+	list-style-type: none;
+	color: #5c5c5c;
+	font-family: 'Yanone Kaffeesatz', sans-serif;
+	font-weight: 300;
+}
+
+#important-dates label {
+	padding: 0.2em;
+	line-height: 1.3em;
+}
+
+#cards-profile-display {
+	padding: 0.5em;
+	height: 150em; /*ZZZ | Added temporarily to give scrolling height for UX testing, to be removed & re-tested for production*/
+}
+
+#cards-profile-display h2{
+	line-height: 1.3em;
+}
+
+#cards-profile-display li {
+	display: inline;
+}
+
+#cards-profile-display img{
+	max-width:5em;
+	max-height:5em;
+	padding-top: 0.5em;
+/* ZZZ | Might want to find a way to center those landscape images vertically */
+}
+
+
+/*****************************
+NAVIGATION (at bottom of page) - used to be #footer
+******************************/
+
+#nav {
+	clear:both;
+	width: 100%;
+	bottom: 0;
+  position: fixed; /*keeps this fixed at the bottom of the screen independently of scrolling*/
+}
+
+/*ZZZ | There shouldn't actually be any p text in the nav I don't think!*/
+#nav p {
+	display: inline-block;
+	color: #ffffff;
+	font-family: 'Yanone Kaffeesatz', sans-serif;
+	font-weight: 300;
+	font-size: 1em;
+	border-left: 1px solid white;
+	padding: 0.3em;
+}
+
+/*ZZZ | Temporary code just to make the links at the bottom look OK, needs to be finalised*/
+#nav a{
+	display: inline-block;
+	color: #ffffff;
+	font-family: 'Yanone Kaffeesatz', sans-serif;
+	font-weight: 300;
+	font-size: 1em;
+	border-left: 1px solid white;
+	padding: 0.3em;
+	text-decoration: none;
+}
+
+/******************
+COLOURS
+******************/
+
+#header {
+	background: #ffffff;
+	/*border-bottom: 1px solid #008888;*/
+}
+
+#take-a-photo {
+	background: #00CED1;
+}
+
+#search {
+	background: #ffffff;
+}
+
+/*Adding magnifying glass icon to search bar on homepage*/
+#home-search-bar input{
+	background-image: url("../img/search-icon.png");
+	background-repeat: no-repeat;
+	background-size: 1.5em;
+	background-position: left center;
+	border-top: 1px solid #008888;
+	border-bottom: 1px solid #008888;
+}
+
+#content {
+	/*background-image: url("../img/background-pattern.jpg");*/
+}
+
+#nav {
+	background: #00CED1;
+}

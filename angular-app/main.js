@@ -15,6 +15,7 @@ appModule.controller("FriendInfoController",['$scope', 'Friendlist', '$routePara
 
 appModule.controller('ProfileMessageController', ['$scope', 'Friendlist', function($scope, Friendlist){
   //this controller needs to display the info for THE friend selected WITHOUT being hardcoded as it is now
+  //Could do this with ng-show/hide but I want there to be more than just two options of messages
     if(Friendlist[0].cards.length){
       $scope.profileMessage = 'Yay! You\'re a great friend';
     }
