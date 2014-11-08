@@ -233,6 +233,15 @@
     },
     {
       "path": "packages/global-imports.js"
+    },
+    {
+      "path": "app/lib/collections/friends-collection.js"
+    },
+    {
+      "path": "app/server/fixtures.js"
+    },
+    {
+      "path": "app/server/publications.js"
     }
   ]
 }

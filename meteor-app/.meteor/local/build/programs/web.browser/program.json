@@ -418,6 +418,15 @@
       "hash": "ddfcd9be6cef3c8bb0263139937a05092e4a3fe9"
     },
     {
+      "path": "app/client/templates/template.layout.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/client/templates/template.layout.js?4c058c253e9f2539ebb5fa74b2490b4dde1a6d78",
+      "size": 540,
+      "hash": "4c058c253e9f2539ebb5fa74b2490b4dde1a6d78"
+    },
+    {
       "path": "app/client/template.main.js",
       "where": "client",
       "type": "js",
@@ -425,6 +434,24 @@
       "url": "/client/template.main.js?69759e2216c572841271239acb8f8ee39ad088e1",
       "size": 381,
       "hash": "69759e2216c572841271239acb8f8ee39ad088e1"
+    },
+    {
+      "path": "app/lib/collections/friends-collection.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/lib/collections/friends-collection.js?370301e9cb15482346ae2724f0b7dc078fa9e29e",
+      "size": 62,
+      "hash": "370301e9cb15482346ae2724f0b7dc078fa9e29e"
+    },
+    {
+      "path": "app/client/main.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/client/main.js?1ada440a8d3879ff198a5360d43ee4651b28b493",
+      "size": 113,
+      "hash": "1ada440a8d3879ff198a5360d43ee4651b28b493"
     },
     {
       "path": "1fd75e6c70f8796496783f2ef7c25829e2e3dfad.css",
