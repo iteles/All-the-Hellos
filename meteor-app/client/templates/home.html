@@ -1,0 +1,32 @@
+<!-- brought into the layout template where the {{> yield}} placeholder currently sits, through the use of routers -->
+<template name="home">
+  <section id="header">
+    <h1> ALL THE HELLOS </h1>
+  </section>
+
+  <!-- Main body of page -->
+  <section id="content">
+    <!-- Take a photo section -->
+    <!-- ZZZ | This will need to actually do something -->
+    <div id="take-a-photo">
+      <img src="img/take-a-photo-white.png"/>
+    </div>
+
+    <!-- Section to find friends from the main page -->
+    <div id="search">
+      <form id="home-search-bar">
+        <input type="text" name="search-term" placeholder="Find a lucky friend..."/>
+      </form>
+
+      <!--List of friends that changes as the user is typing-->
+      <ul id="list-of-friends">
+        {{#each friendlist}}
+        <li>
+          <img src="{{photo}}"><a href="/view-profile/{{id}}">{{firstName}} {{lastName}}</a>
+        </li>
+        {{/each}}
+      </ul>
+    </div>
+  </section> <!-- End of content section -->
+
+</template>

@@ -1,5 +1,7 @@
 /* Imports for global scope */
 
+Router = Package['iron:router'].Router;
+RouteController = Package['iron:router'].RouteController;
 Meteor = Package.meteor.Meteor;
 WebApp = Package.webapp.WebApp;
 Log = Package.logging.Log;
@@ -21,5 +23,6 @@ jQuery = Package.jquery.jQuery;
 Random = Package.random.Random;
 EJSON = Package.ejson.EJSON;
 LaunchScreen = Package['launch-screen'].LaunchScreen;
+Iron = Package['iron:core'].Iron;
 HTML = Package.htmljs.HTML;
 
