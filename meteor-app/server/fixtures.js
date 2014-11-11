@@ -1,9 +1,9 @@
 //if when the app starts there is no data on the server, insert this dummy data
 //note it's in the server folder so will only be created from there
+
 if (Friends.find().count() === 0) {
   Friends.insert(
-    { id: 1,
-      firstName: 'Anna',
+    { firstName: 'Anna',
       lastName: 'Finlayson',
       photo: "img/person1.jpg",
       relationship: 'friend',
@@ -15,8 +15,7 @@ if (Friends.find().count() === 0) {
     });
 
     Friends.insert(
-    { id: 2,
-      firstName:'Tyler',
+    { firstName:'Tyler',
       lastName: 'Durden',
       photo: "img/person2.jpg",
       relationship: 'brother',
@@ -27,8 +26,7 @@ if (Friends.find().count() === 0) {
     });
 
     Friends.insert(
-    { id: 3,
-      firstName:'Sammy',
+    { firstName:'Sammy',
       lastName: 'NewName',
       photo: "img/person3.jpg",
       relationship: 'strangerdanger',

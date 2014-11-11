@@ -244,17 +244,6 @@
       "hash": "499a2f8522e25820b1153c69a92751ccaae507b3"
     },
     {
-      "path": "packages/autopublish.js",
-      "where": "client",
-      "type": "js",
-      "cacheable": true,
-      "url": "/packages/autopublish.js?c3059a78bb200b171099fc4fa1a9345101790ddb",
-      "sourceMap": "packages/autopublish.js.map",
-      "sourceMapUrl": "/packages/c3059a78bb200b171099fc4fa1a9345101790ddb.map",
-      "size": 1293,
-      "hash": "c3059a78bb200b171099fc4fa1a9345101790ddb"
-    },
-    {
       "path": "packages/webapp.js",
       "where": "client",
       "type": "js",
@@ -422,18 +411,18 @@
       "where": "client",
       "type": "js",
       "cacheable": true,
-      "url": "/client/templates/template.layout.js?4c058c253e9f2539ebb5fa74b2490b4dde1a6d78",
-      "size": 540,
-      "hash": "4c058c253e9f2539ebb5fa74b2490b4dde1a6d78"
+      "url": "/client/templates/template.layout.js?53b072d2a451339d0ec117edb487787e1395b137",
+      "size": 2110,
+      "hash": "53b072d2a451339d0ec117edb487787e1395b137"
     },
     {
       "path": "app/client/template.main.js",
       "where": "client",
       "type": "js",
       "cacheable": true,
-      "url": "/client/template.main.js?69759e2216c572841271239acb8f8ee39ad088e1",
-      "size": 381,
-      "hash": "69759e2216c572841271239acb8f8ee39ad088e1"
+      "url": "/client/template.main.js?36b8319b69de4f731497d68a361275391eecc51d",
+      "size": 197,
+      "hash": "36b8319b69de4f731497d68a361275391eecc51d"
     },
     {
       "path": "app/lib/collections/friends-collection.js",
@@ -445,13 +434,22 @@
       "hash": "370301e9cb15482346ae2724f0b7dc078fa9e29e"
     },
     {
+      "path": "app/client/templates/layout.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/client/templates/layout.js?b56d8546f8898a468e292eb1634f459e92cde2b9",
+      "size": 1028,
+      "hash": "b56d8546f8898a468e292eb1634f459e92cde2b9"
+    },
+    {
       "path": "app/client/main.js",
       "where": "client",
       "type": "js",
       "cacheable": true,
-      "url": "/client/main.js?1ada440a8d3879ff198a5360d43ee4651b28b493",
-      "size": 113,
-      "hash": "1ada440a8d3879ff198a5360d43ee4651b28b493"
+      "url": "/client/main.js?6ddc6cbb116c31390926fa6ac9404e3f399342a6",
+      "size": 91,
+      "hash": "6ddc6cbb116c31390926fa6ac9404e3f399342a6"
     },
     {
       "path": "1fd75e6c70f8796496783f2ef7c25829e2e3dfad.css",
@@ -463,6 +461,150 @@
       "sourceMapUrl": "/1fd75e6c70f8796496783f2ef7c25829e2e3dfad.map",
       "size": 6305,
       "hash": "1fd75e6c70f8796496783f2ef7c25829e2e3dfad"
+    },
+    {
+      "path": "app/img/DSLR-camera-icon.png",
+      "where": "client",
+      "type": "asset",
+      "cacheable": false,
+      "url": "/img/DSLR-camera-icon.png",
+      "size": 14988,
+      "hash": "ce20ac36aaf5b476cf6182d63297377ece4de073"
+    },
+    {
+      "path": "app/img/background-pattern.jpg",
+      "where": "client",
+      "type": "asset",
+      "cacheable": false,
+      "url": "/img/background-pattern.jpg",
+      "size": 1177,
+      "hash": "c2cad7d8c2cb9cb5136809a8a02e40a22d3ae387"
+    },
+    {
+      "path": "app/img/card1.JPG",
+      "where": "client",
+      "type": "asset",
+      "cacheable": false,
+      "url": "/img/card1.JPG",
+      "size": 1906421,
+      "hash": "9ae7fb567995ec280d8fab5dbf5650e924d1a116"
+    },
+    {
+      "path": "app/img/card2.JPG",
+      "where": "client",
+      "type": "asset",
+      "cacheable": false,
+      "url": "/img/card2.JPG",
+      "size": 2464173,
+      "hash": "7bb60ca117bb862bb49377541383b0b27d989260"
+    },
+    {
+      "path": "app/img/card3.JPG",
+      "where": "client",
+      "type": "asset",
+      "cacheable": false,
+      "url": "/img/card3.JPG",
+      "size": 2682043,
+      "hash": "64d813f7e96ab61b04ef32fa20966e21e9070e2d"
+    },
+    {
+      "path": "app/img/card4.JPG",
+      "where": "client",
+      "type": "asset",
+      "cacheable": false,
+      "url": "/img/card4.JPG",
+      "size": 2856326,
+      "hash": "09ac0f656a2b4840c6c949956c2e166d57abe261"
+    },
+    {
+      "path": "app/img/person1.jpg",
+      "where": "client",
+      "type": "asset",
+      "cacheable": false,
+      "url": "/img/person1.jpg",
+      "size": 5157,
+      "hash": "63d4ba80def55da294e5ecc6a94b9d450860cb65"
+    },
+    {
+      "path": "app/img/person2.jpg",
+      "where": "client",
+      "type": "asset",
+      "cacheable": false,
+      "url": "/img/person2.jpg",
+      "size": 3497,
+      "hash": "e884956cac166c895a09316cc5bffcd1ad74f6be"
+    },
+    {
+      "path": "app/img/person3.jpg",
+      "where": "client",
+      "type": "asset",
+      "cacheable": false,
+      "url": "/img/person3.jpg",
+      "size": 6096,
+      "hash": "cc7d6b8888cfb82ec9cac8be16ec6c24b875701a"
+    },
+    {
+      "path": "app/img/person4.jpg",
+      "where": "client",
+      "type": "asset",
+      "cacheable": false,
+      "url": "/img/person4.jpg",
+      "size": 3199,
+      "hash": "d757fc6807153dd09fc14b49c004249269789f5a"
+    },
+    {
+      "path": "app/img/search-icon.png",
+      "where": "client",
+      "type": "asset",
+      "cacheable": false,
+      "url": "/img/search-icon.png",
+      "size": 7078,
+      "hash": "632e3e4fc583002c863d06895c57122910cc785b"
+    },
+    {
+      "path": "app/img/star.png",
+      "where": "client",
+      "type": "asset",
+      "cacheable": false,
+      "url": "/img/star.png",
+      "size": 35332,
+      "hash": "e8bbf6bf7a5a9c92948670856f9429a3add23e38"
+    },
+    {
+      "path": "app/img/take-a-photo-outline.png",
+      "where": "client",
+      "type": "asset",
+      "cacheable": false,
+      "url": "/img/take-a-photo-outline.png",
+      "size": 23633,
+      "hash": "022ef1e4d3df30ed7a8883c6e6c77335afbe8263"
+    },
+    {
+      "path": "app/img/take-a-photo-square.png",
+      "where": "client",
+      "type": "asset",
+      "cacheable": false,
+      "url": "/img/take-a-photo-square.png",
+      "size": 17645,
+      "hash": "3d60ea161a310a96a25ce2dff2d4e133ddeaa5fa"
+    },
+    {
+      "path": "app/img/take-a-photo-white.png",
+      "where": "client",
+      "type": "asset",
+      "cacheable": false,
+      "url": "/img/take-a-photo-white.png",
+      "size": 17397,
+      "hash": "3e9d9f3d083291e36444c77c7b636ebf5f6eec74"
+    },
+    {
+      "path": "app/img/take-a-photo.png",
+      "where": "client",
+      "type": "asset",
+      "cacheable": false,
+      "url": "/img/take-a-photo.png",
+      "size": 22939,
+      "hash": "4c08d0d8688ac015b0e26ee596a4198688028db5"
     },
     {
       "path": "head.html",

@@ -170,11 +170,6 @@
       "path": "packages/retry.js"
     },
     {
-      "sourceMap": "packages/autopublish.js.map",
-      "sourceMapRoot": "packages",
-      "path": "packages/autopublish.js"
-    },
-    {
       "sourceMap": "packages/callback-hook.js.map",
       "sourceMapRoot": "packages",
       "path": "packages/callback-hook.js"
