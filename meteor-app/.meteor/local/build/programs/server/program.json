@@ -294,7 +294,7 @@
       "path": "app/lib/collections/friends-collection.js"
     },
     {
-      "path": "app/lib/routers.js"
+      "path": "app/lib/router.js"
     },
     {
       "path": "app/server/fixtures.js"

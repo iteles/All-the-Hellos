@@ -533,6 +533,15 @@
       "hash": "4c058c253e9f2539ebb5fa74b2490b4dde1a6d78"
     },
     {
+      "path": "app/client/templates/template.view_profile.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/client/templates/template.view_profile.js?3e5d7de1e7d19cb3dbe6c9fd144b94b5fb76cd2a",
+      "size": 3018,
+      "hash": "3e5d7de1e7d19cb3dbe6c9fd144b94b5fb76cd2a"
+    },
+    {
       "path": "app/lib/collections/friends-collection.js",
       "where": "client",
       "type": "js",
@@ -542,13 +551,13 @@
       "hash": "370301e9cb15482346ae2724f0b7dc078fa9e29e"
     },
     {
-      "path": "app/lib/routers.js",
+      "path": "app/lib/router.js",
       "where": "client",
       "type": "js",
       "cacheable": true,
-      "url": "/lib/routers.js?4cec007744d20becd46ba6369acbfd0ee639f66e",
-      "size": 553,
-      "hash": "4cec007744d20becd46ba6369acbfd0ee639f66e"
+      "url": "/lib/router.js?f7d908fff270fed08a4e3d25f51a26eb91fd5476",
+      "size": 685,
+      "hash": "f7d908fff270fed08a4e3d25f51a26eb91fd5476"
     },
     {
       "path": "app/client/templates/home.js",
@@ -558,6 +567,15 @@
       "url": "/client/templates/home.js?5996eb7b963926faffb9b71461031d98af8dc0ab",
       "size": 144,
       "hash": "5996eb7b963926faffb9b71461031d98af8dc0ab"
+    },
+    {
+      "path": "app/client/templates/view_profile.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/client/templates/view_profile.js?b04c1fd6b2bdeb9dc3754037f0344e952f6778ad",
+      "size": 147,
+      "hash": "b04c1fd6b2bdeb9dc3754037f0344e952f6778ad"
     },
     {
       "path": "app/client/main.js",
