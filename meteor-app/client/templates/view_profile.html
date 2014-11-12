@@ -1,5 +1,5 @@
 <template name="viewProfile">
-  {{#each friend}}
+
     <section id="header">
     <h1> {{firstName }} {{lastName}} </h1>
   </section>
@@ -20,8 +20,10 @@
     <!-- ZZZ | this will need to be updated to an array directive -->
     <div id=important-dates>
       <!-- ZZZZ | Turn this into a ul and use ng-repeat, updating CSS too -->
-      <ul ng-repeat="date in dates">
-        <li><label>{{dates.label}}:</label> {{dates.date}}</li>
+      <ul>
+        {{#each dates}}
+        <li><label>{{label}}:</label> {{date}}</li>
+        {{/each}}
       </ul>
     </div>
 
@@ -30,12 +32,12 @@
       <h2 ng-hide="friend.cards.length">You haven't sent {{firstName}} any cards yet</h2>
       <!-- Images also uploaded here (4 cards): http://imgur.com/yOG825o,mzxAXeD,tWWuCnH,uAiy86O -->
       <ul>
-        {{#each friend.cards}}
+        {{#each cards}}
         <li>
-          <img ng-src="{{card}}"></li>
+          <img src="{{card}}"></li>
         {{/each}}
       </ul>
     </div>
   </section>
-  {{/each}}
+
 </template>

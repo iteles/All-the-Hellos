@@ -537,9 +537,9 @@
       "where": "client",
       "type": "js",
       "cacheable": true,
-      "url": "/client/templates/template.view_profile.js?3e5d7de1e7d19cb3dbe6c9fd144b94b5fb76cd2a",
-      "size": 3018,
-      "hash": "3e5d7de1e7d19cb3dbe6c9fd144b94b5fb76cd2a"
+      "url": "/client/templates/template.view_profile.js?665869394c46ca16e7edc236cacb26a6b2c21769",
+      "size": 2833,
+      "hash": "665869394c46ca16e7edc236cacb26a6b2c21769"
     },
     {
       "path": "app/lib/collections/friends-collection.js",
@@ -573,9 +573,9 @@
       "where": "client",
       "type": "js",
       "cacheable": true,
-      "url": "/client/templates/view_profile.js?b04c1fd6b2bdeb9dc3754037f0344e952f6778ad",
-      "size": 147,
-      "hash": "b04c1fd6b2bdeb9dc3754037f0344e952f6778ad"
+      "url": "/client/templates/view_profile.js?27d9e9ccda3bd463052afbc3813efd11c3213068",
+      "size": 161,
+      "hash": "27d9e9ccda3bd463052afbc3813efd11c3213068"
     },
     {
       "path": "app/client/main.js",
