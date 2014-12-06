@@ -7,7 +7,7 @@
   <!-- Main body of page -->
   <section id="content">
     <div id=top-left>
-      <img src="{{photo}}" title="Friend's profile photo">
+      <img src="../{{photo}}" title="{{firstName}}'s profile photo">
       <p>{{relationship}}</p>
     </div>
 
@@ -34,7 +34,7 @@
       <ul>
         {{#each cards}}
         <li>
-          <img src="{{card}}"></li>
+          <img src="../{{url}}"></li>
         {{/each}}
       </ul>
     </div>

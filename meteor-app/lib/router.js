@@ -17,6 +17,6 @@ Router.route('/',
 Router.route('/view-profile/:_id',
   {name: 'viewProfile',
 
-    data: function() {return Friends.findOne(this.params._id);}
+    data: function() {return Friends.findOne({_id: this.params._id});}
   }
 );

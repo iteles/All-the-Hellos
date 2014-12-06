@@ -22,7 +22,8 @@
       <ul id="list-of-friends">
         {{#each friendlist}}
         <li>
-          <img src="{{photo}}"><a href="/view-profile/{{id}}">{{firstName}} {{lastName}}</a>
+          <!--pathFor used with route name figures itself out instead of having to link to specific path plus having a helper to figure out the ID-->
+          <img src="{{photo}}"><a href="{{pathFor 'viewProfile'}}">{{firstName}} {{lastName}}</a>
         </li>
         {{/each}}
       </ul>

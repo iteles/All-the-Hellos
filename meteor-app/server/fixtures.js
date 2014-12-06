@@ -11,7 +11,7 @@ if (Friends.find().count() === 0) {
       dates: [ //ISO 8601 datetime string formats - lots of validation will be required here
         {label: 'birthday', date: '1989-10-24'},
         {label: 'anniversary', date: '2013-11-04'}],
-      cards: ["./img/card1.jpg","img/card2.jpg","../client/img/card3.jpg", "../client/img/card4.jpg"]
+      cards: [{url: './img/card1.jpg'}, {url: './img/card3.jpg'}, {url:'./img/card4.jpg'}]
     });
 
     Friends.insert(

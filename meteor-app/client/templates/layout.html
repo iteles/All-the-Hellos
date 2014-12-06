@@ -7,7 +7,8 @@
 <!-- ZZZ | Maybe move these into a template of their own? -->
     <section id="nav">
       <p> Sign in </p>
-      <p> Add friend </p>
+      <!--ZZZ Still need to create route!! iron:router knows that when this link is clicked, it should display the /new-friend route with the newFriend template-->
+      <p> <a href="{{pathFor 'newFriend'}}">Add friend </a></p>
     </section>
 
 </template>
