@@ -4,7 +4,7 @@ Router.configure(
    loadingTemplate: 'loading',
   //having waitOn in the config means all this data will load once, when your app does
    waitOn: function(){
-      Meteor.subscribe('friends'); }
+      return [Meteor.subscribe('friends'), Meteor.subscribe('cards')]; }
   }
 );
 

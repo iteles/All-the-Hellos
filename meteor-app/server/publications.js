@@ -2,3 +2,7 @@
   Meteor.publish('friends', function(){
     return Friends.find();
   });
+
+  Meteor.publish('cards', function(){
+    return Cards.find();
+  });
