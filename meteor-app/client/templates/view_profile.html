@@ -28,13 +28,14 @@
     </div>
 
     <div id=cards-profile-display>
-      <h2 ng-show="friend.cards.length">CARDS I HAVE SENT {{firstName}} {{lastName}}</h2>
-      <h2 ng-hide="friend.cards.length">You haven't sent {{firstName}} any cards yet</h2>
+      {{#if cards}}<h2>CARDS I HAVE SENT {{firstName}} {{lastName}}</h2>
+      {{else}}<h2>You haven't sent {{firstName}} any cards yet</h2>{{/if}}
       <!-- Images also uploaded here (4 cards): http://imgur.com/yOG825o,mzxAXeD,tWWuCnH,uAiy86O -->
       <ul>
         {{#each cards}}
+        <p>friendId: {{friendId}}  </p><p> url:{{url}}</p>
         <li>
-          <img src="../{{url}}"></li>
+          <img src="{{url}}"></li>
         {{/each}}
       </ul>
     </div>

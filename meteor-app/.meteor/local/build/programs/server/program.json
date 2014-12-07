@@ -291,6 +291,9 @@
       "path": "packages/global-imports.js"
     },
     {
+      "path": "app/lib/collections/cards-collection.js"
+    },
+    {
       "path": "app/lib/collections/friends-collection.js"
     },
     {

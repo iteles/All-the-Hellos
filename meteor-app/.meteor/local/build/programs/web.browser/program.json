@@ -519,9 +519,9 @@
       "where": "client",
       "type": "js",
       "cacheable": true,
-      "url": "/client/templates/template.home.js?06a97dee854095caf76ec79ecab3d6ba196890df",
-      "size": 1646,
-      "hash": "06a97dee854095caf76ec79ecab3d6ba196890df"
+      "url": "/client/templates/template.home.js?97a57f433f51b934575e05bf70b3ec17718783a4",
+      "size": 1812,
+      "hash": "97a57f433f51b934575e05bf70b3ec17718783a4"
     },
     {
       "path": "app/client/templates/template.layout.js",
@@ -537,9 +537,18 @@
       "where": "client",
       "type": "js",
       "cacheable": true,
-      "url": "/client/templates/template.view_profile.js?5553c00ef39034e05081441f0cbc8b01dd6e20fe",
-      "size": 2931,
-      "hash": "5553c00ef39034e05081441f0cbc8b01dd6e20fe"
+      "url": "/client/templates/template.view_profile.js?a44e8950a23af97058292bb8e4f55aa011d8bf84",
+      "size": 3217,
+      "hash": "a44e8950a23af97058292bb8e4f55aa011d8bf84"
+    },
+    {
+      "path": "app/lib/collections/cards-collection.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/lib/collections/cards-collection.js?cdf970db2009d0925a015ab7af04041a9b7df29f",
+      "size": 58,
+      "hash": "cdf970db2009d0925a015ab7af04041a9b7df29f"
     },
     {
       "path": "app/lib/collections/friends-collection.js",
@@ -555,9 +564,9 @@
       "where": "client",
       "type": "js",
       "cacheable": true,
-      "url": "/lib/router.js?a428091b804aa31b6eaa190f8964c3cc1780d1c3",
-      "size": 692,
-      "hash": "a428091b804aa31b6eaa190f8964c3cc1780d1c3"
+      "url": "/lib/router.js?cbf40a658d2550569305047f8e9a87a0cce46e8a",
+      "size": 728,
+      "hash": "cbf40a658d2550569305047f8e9a87a0cce46e8a"
     },
     {
       "path": "app/client/templates/home.js",
@@ -573,9 +582,9 @@
       "where": "client",
       "type": "js",
       "cacheable": true,
-      "url": "/client/templates/view_profile.js?6ed7c9b3c78795479c1d7c424e91a2ec9166af14",
-      "size": 171,
-      "hash": "6ed7c9b3c78795479c1d7c424e91a2ec9166af14"
+      "url": "/client/templates/view_profile.js?ec7485dbf36624ea0d30d39586731a6dfd2fd428",
+      "size": 236,
+      "hash": "ec7485dbf36624ea0d30d39586731a6dfd2fd428"
     },
     {
       "path": "app/client/main.js",

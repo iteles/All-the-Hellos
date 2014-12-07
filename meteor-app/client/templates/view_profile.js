@@ -1,8 +1,9 @@
 //holds logic for view-profile template
 Template.viewProfile.helpers({
-  // friend: function(){
-  //    return Friends.findOne(this._id);
-  //  }
+  //this._id is the ID of the current frient profile being displayed
+  cards: function(){
+     return Cards.find({friendId: this._id});
+  }
 
 
 });
