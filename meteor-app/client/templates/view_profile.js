@@ -7,14 +7,12 @@ Template.viewProfile.helpers({
 
   profileMessage: function(){
     var message;
-    if (cards){
+    if (Cards.find({friendId: this._id}).length){
       message = "Yay! You\'re a great friend!";
     }
     else{
       message = "No cards yet!";
     }
-
-    console.log(message);
     return message;
   }
 

@@ -537,9 +537,9 @@
       "where": "client",
       "type": "js",
       "cacheable": true,
-      "url": "/client/templates/template.view_profile.js?2e1973353bef008548b0f3925cf7358f24997bd6",
-      "size": 2994,
-      "hash": "2e1973353bef008548b0f3925cf7358f24997bd6"
+      "url": "/client/templates/template.view_profile.js?ac368ea99568a3d13308c165bae5d75ca28475f4",
+      "size": 3019,
+      "hash": "ac368ea99568a3d13308c165bae5d75ca28475f4"
     },
     {
       "path": "app/lib/collections/cards-collection.js",
@@ -582,9 +582,9 @@
       "where": "client",
       "type": "js",
       "cacheable": true,
-      "url": "/client/templates/view_profile.js?ea6e2645663c38b7d33a71796aff955fe9437e42",
-      "size": 454,
-      "hash": "ea6e2645663c38b7d33a71796aff955fe9437e42"
+      "url": "/client/templates/view_profile.js?9993e35f9f32d5aed6ec3a2f719d3d7a80fce30f",
+      "size": 461,
+      "hash": "9993e35f9f32d5aed6ec3a2f719d3d7a80fce30f"
     },
     {
       "path": "app/client/main.js",
