@@ -537,9 +537,9 @@
       "where": "client",
       "type": "js",
       "cacheable": true,
-      "url": "/client/templates/template.view_profile.js?a44e8950a23af97058292bb8e4f55aa011d8bf84",
-      "size": 3217,
-      "hash": "a44e8950a23af97058292bb8e4f55aa011d8bf84"
+      "url": "/client/templates/template.view_profile.js?2e1973353bef008548b0f3925cf7358f24997bd6",
+      "size": 2994,
+      "hash": "2e1973353bef008548b0f3925cf7358f24997bd6"
     },
     {
       "path": "app/lib/collections/cards-collection.js",
@@ -582,9 +582,9 @@
       "where": "client",
       "type": "js",
       "cacheable": true,
-      "url": "/client/templates/view_profile.js?ec7485dbf36624ea0d30d39586731a6dfd2fd428",
-      "size": 236,
-      "hash": "ec7485dbf36624ea0d30d39586731a6dfd2fd428"
+      "url": "/client/templates/view_profile.js?ea6e2645663c38b7d33a71796aff955fe9437e42",
+      "size": 454,
+      "hash": "ea6e2645663c38b7d33a71796aff955fe9437e42"
     },
     {
       "path": "app/client/main.js",
@@ -625,38 +625,38 @@
       "hash": "c2cad7d8c2cb9cb5136809a8a02e40a22d3ae387"
     },
     {
-      "path": "app/img/card1.JPG",
+      "path": "app/img/card1.jpg",
       "where": "client",
       "type": "asset",
       "cacheable": false,
-      "url": "/img/card1.JPG",
+      "url": "/img/card1.jpg",
       "size": 1906421,
       "hash": "9ae7fb567995ec280d8fab5dbf5650e924d1a116"
     },
     {
-      "path": "app/img/card2.JPG",
+      "path": "app/img/card2.jpg",
       "where": "client",
       "type": "asset",
       "cacheable": false,
-      "url": "/img/card2.JPG",
+      "url": "/img/card2.jpg",
       "size": 2464173,
       "hash": "7bb60ca117bb862bb49377541383b0b27d989260"
     },
     {
-      "path": "app/img/card3.JPG",
+      "path": "app/img/card3.jpg",
       "where": "client",
       "type": "asset",
       "cacheable": false,
-      "url": "/img/card3.JPG",
+      "url": "/img/card3.jpg",
       "size": 2682043,
       "hash": "64d813f7e96ab61b04ef32fa20966e21e9070e2d"
     },
     {
-      "path": "app/img/card4.JPG",
+      "path": "app/img/card4.jpg",
       "where": "client",
       "type": "asset",
       "cacheable": false,
-      "url": "/img/card4.JPG",
+      "url": "/img/card4.jpg",
       "size": 2856326,
       "hash": "09ac0f656a2b4840c6c949956c2e166d57abe261"
     },
