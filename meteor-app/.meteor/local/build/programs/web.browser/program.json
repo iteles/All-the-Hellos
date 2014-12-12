@@ -564,9 +564,9 @@
       "where": "client",
       "type": "js",
       "cacheable": true,
-      "url": "/lib/router.js?cbf40a658d2550569305047f8e9a87a0cce46e8a",
-      "size": 728,
-      "hash": "cbf40a658d2550569305047f8e9a87a0cce46e8a"
+      "url": "/lib/router.js?85cc41f3d857f7520704379ba63ccb59b1692450",
+      "size": 1082,
+      "hash": "85cc41f3d857f7520704379ba63ccb59b1692450"
     },
     {
       "path": "app/client/templates/home.js",
@@ -582,9 +582,9 @@
       "where": "client",
       "type": "js",
       "cacheable": true,
-      "url": "/client/templates/view_profile.js?9993e35f9f32d5aed6ec3a2f719d3d7a80fce30f",
-      "size": 461,
-      "hash": "9993e35f9f32d5aed6ec3a2f719d3d7a80fce30f"
+      "url": "/client/templates/view_profile.js?615324dbcfda653523a0126eb3b9d89fa1e9a4b8",
+      "size": 462,
+      "hash": "615324dbcfda653523a0126eb3b9d89fa1e9a4b8"
     },
     {
       "path": "app/client/main.js",

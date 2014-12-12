@@ -13,6 +13,7 @@ Template.viewProfile.helpers({
     else{
       message = "No cards yet!";
     }
+
     return message;
   }
 

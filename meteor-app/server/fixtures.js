@@ -23,7 +23,7 @@ if (Friends.find().count() === 0) {
       gender: 'male',
       dates: [ //ISO 8601 datetime string formats - lots of validation will be required here
         {label: 'birthday', date: '1978-03-21'} ],
-      cards: [{url: './img/card2.jpg'},{url: './img/card3.jpg'}]
+      cards: [{cardId: 'card1'}, {cardId: 'card2'}, {cardId: 'card3'}]
     });
 
     var sammyId = Friends.insert(

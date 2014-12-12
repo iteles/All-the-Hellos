@@ -3,6 +3,9 @@
     return Friends.find();
   });
 
-  Meteor.publish('cards', function(){
-    return Cards.find();
+  Meteor.publish('cards', function(friendId){
+    //checks friendId is a String, as recommended by Discover Meteor book
+    check(friendId, String);
+    
+    return Cards.find({friendId: friendId});
   });
