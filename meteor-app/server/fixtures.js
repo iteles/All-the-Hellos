@@ -39,22 +39,22 @@ if (Friends.find().count() === 0) {
     });
 
     var card1 = Cards.insert({
-      friendId:[annaId, tylerId],
-      url: './img/card1.jpg'
+      friendId:[{recipient:annaId, date: '2014-10-24'},{recipient: tylerId, date: '2010-03-21'}],
+      url: './img/card1.jpg',
     });
 
     var card2 = Cards.insert({
-      friendId:[tylerId],
+      friendId:[{recipient: tylerId, date: '2011-03-21'}],
       url: './img/card2.jpg'
     });
 
     var card3 = Cards.insert({
-      friendId:[annaId, tylerId],
+      friendId:[{recipient:annaId, date: '2013-10-24'},{recipient: tylerId, date: '2012-03-21'}],
       url: './img/card3.jpg'
     });
 
     var card4 = Cards.insert({
-      friendId:[annaId],
+      friendId:[{recipient:annaId, date: '2012-10-24'}],
       url: './img/card4.jpg'
     });
 }
