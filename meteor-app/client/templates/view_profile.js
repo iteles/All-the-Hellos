@@ -7,7 +7,8 @@ Template.viewProfile.helpers({
 
   profileMessage: function(){
     var message;
-    if (Cards.find({friendId: this._id}).length){
+
+    if (Cards.find({friendId: this._id}).count() > 0){
       message = "Yay! You\'re a great friend!";
     }
     else{

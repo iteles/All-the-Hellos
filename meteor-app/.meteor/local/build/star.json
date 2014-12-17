@@ -1,6 +1,6 @@
 {
   "format": "site-archive-pre1",
-  "builtBy": "Meteor METEOR@1.0",
+  "builtBy": "Meteor METEOR@1.0.1",
   "programs": [
     {
       "name": "web.browser",
@@ -28,5 +28,5 @@
       }
     }
   ],
-  "meteorRelease": "METEOR@1.0"
+  "meteorRelease": "METEOR@1.0.1"
 }

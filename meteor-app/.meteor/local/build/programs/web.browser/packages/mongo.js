@@ -1056,142 +1056,152 @@ Mongo.Collection.prototype._validatedUpdate = function(                         
     userId, selector, mutator, options) {                                                                             // 964
   var self = this;                                                                                                    // 965
                                                                                                                       // 966
-  options = options || {};                                                                                            // 967
+  check(mutator, Object);                                                                                             // 967
                                                                                                                       // 968
-  if (!LocalCollection._selectorIsIdPerhapsAsObject(selector))                                                        // 969
-    throw new Error("validated update should be of a single ID");                                                     // 970
-                                                                                                                      // 971
-  // We don't support upserts because they don't fit nicely into allow/deny                                           // 972
-  // rules.                                                                                                           // 973
-  if (options.upsert)                                                                                                 // 974
-    throw new Meteor.Error(403, "Access denied. Upserts not " +                                                       // 975
-                           "allowed in a restricted collection.");                                                    // 976
-                                                                                                                      // 977
-  // compute modified fields                                                                                          // 978
-  var fields = [];                                                                                                    // 979
-  _.each(mutator, function (params, op) {                                                                             // 980
-    if (op.charAt(0) !== '$') {                                                                                       // 981
-      throw new Meteor.Error(                                                                                         // 982
-        403, "Access denied. In a restricted collection you can only update documents, not replace them. Use a Mongo update operator, such as '$set'.");
-    } else if (!_.has(ALLOWED_UPDATE_OPERATIONS, op)) {                                                               // 984
-      throw new Meteor.Error(                                                                                         // 985
-        403, "Access denied. Operator " + op + " not allowed in a restricted collection.");                           // 986
-    } else {                                                                                                          // 987
-      _.each(_.keys(params), function (field) {                                                                       // 988
-        // treat dotted fields as if they are replacing their                                                         // 989
-        // top-level part                                                                                             // 990
-        if (field.indexOf('.') !== -1)                                                                                // 991
-          field = field.substring(0, field.indexOf('.'));                                                             // 992
-                                                                                                                      // 993
-        // record the field we are trying to change                                                                   // 994
-        if (!_.contains(fields, field))                                                                               // 995
-          fields.push(field);                                                                                         // 996
-      });                                                                                                             // 997
-    }                                                                                                                 // 998
-  });                                                                                                                 // 999
-                                                                                                                      // 1000
-  var findOptions = {transform: null};                                                                                // 1001
-  if (!self._validators.fetchAllFields) {                                                                             // 1002
-    findOptions.fields = {};                                                                                          // 1003
-    _.each(self._validators.fetch, function(fieldName) {                                                              // 1004
-      findOptions.fields[fieldName] = 1;                                                                              // 1005
-    });                                                                                                               // 1006
-  }                                                                                                                   // 1007
+  options = _.clone(options) || {};                                                                                   // 969
+                                                                                                                      // 970
+  if (!LocalCollection._selectorIsIdPerhapsAsObject(selector))                                                        // 971
+    throw new Error("validated update should be of a single ID");                                                     // 972
+                                                                                                                      // 973
+  // We don't support upserts because they don't fit nicely into allow/deny                                           // 974
+  // rules.                                                                                                           // 975
+  if (options.upsert)                                                                                                 // 976
+    throw new Meteor.Error(403, "Access denied. Upserts not " +                                                       // 977
+                           "allowed in a restricted collection.");                                                    // 978
+                                                                                                                      // 979
+  var noReplaceError = "Access denied. In a restricted collection you can only" +                                     // 980
+        " update documents, not replace them. Use a Mongo update operator, such " +                                   // 981
+        "as '$set'.";                                                                                                 // 982
+                                                                                                                      // 983
+  // compute modified fields                                                                                          // 984
+  var fields = [];                                                                                                    // 985
+  if (_.isEmpty(mutator)) {                                                                                           // 986
+    throw new Meteor.Error(403, noReplaceError);                                                                      // 987
+  }                                                                                                                   // 988
+  _.each(mutator, function (params, op) {                                                                             // 989
+    if (op.charAt(0) !== '$') {                                                                                       // 990
+      throw new Meteor.Error(403, noReplaceError);                                                                    // 991
+    } else if (!_.has(ALLOWED_UPDATE_OPERATIONS, op)) {                                                               // 992
+      throw new Meteor.Error(                                                                                         // 993
+        403, "Access denied. Operator " + op + " not allowed in a restricted collection.");                           // 994
+    } else {                                                                                                          // 995
+      _.each(_.keys(params), function (field) {                                                                       // 996
+        // treat dotted fields as if they are replacing their                                                         // 997
+        // top-level part                                                                                             // 998
+        if (field.indexOf('.') !== -1)                                                                                // 999
+          field = field.substring(0, field.indexOf('.'));                                                             // 1000
+                                                                                                                      // 1001
+        // record the field we are trying to change                                                                   // 1002
+        if (!_.contains(fields, field))                                                                               // 1003
+          fields.push(field);                                                                                         // 1004
+      });                                                                                                             // 1005
+    }                                                                                                                 // 1006
+  });                                                                                                                 // 1007
                                                                                                                       // 1008
-  var doc = self._collection.findOne(selector, findOptions);                                                          // 1009
-  if (!doc)  // none satisfied!                                                                                       // 1010
-    return 0;                                                                                                         // 1011
-                                                                                                                      // 1012
-  var factoriedDoc;                                                                                                   // 1013
-                                                                                                                      // 1014
-  // call user validators.                                                                                            // 1015
-  // Any deny returns true means denied.                                                                              // 1016
-  if (_.any(self._validators.update.deny, function(validator) {                                                       // 1017
-    if (!factoriedDoc)                                                                                                // 1018
-      factoriedDoc = transformDoc(validator, doc);                                                                    // 1019
-    return validator(userId,                                                                                          // 1020
-                     factoriedDoc,                                                                                    // 1021
-                     fields,                                                                                          // 1022
-                     mutator);                                                                                        // 1023
-  })) {                                                                                                               // 1024
-    throw new Meteor.Error(403, "Access denied");                                                                     // 1025
-  }                                                                                                                   // 1026
-  // Any allow returns true means proceed. Throw error if they all fail.                                              // 1027
-  if (_.all(self._validators.update.allow, function(validator) {                                                      // 1028
-    if (!factoriedDoc)                                                                                                // 1029
-      factoriedDoc = transformDoc(validator, doc);                                                                    // 1030
-    return !validator(userId,                                                                                         // 1031
-                      factoriedDoc,                                                                                   // 1032
-                      fields,                                                                                         // 1033
-                      mutator);                                                                                       // 1034
-  })) {                                                                                                               // 1035
-    throw new Meteor.Error(403, "Access denied");                                                                     // 1036
-  }                                                                                                                   // 1037
-                                                                                                                      // 1038
-  // Back when we supported arbitrary client-provided selectors, we actually                                          // 1039
-  // rewrote the selector to include an _id clause before passing to Mongo to                                         // 1040
-  // avoid races, but since selector is guaranteed to already just be an ID, we                                       // 1041
-  // don't have to any more.                                                                                          // 1042
-                                                                                                                      // 1043
-  return self._collection.update.call(                                                                                // 1044
-    self._collection, selector, mutator, options);                                                                    // 1045
-};                                                                                                                    // 1046
-                                                                                                                      // 1047
-// Only allow these operations in validated updates. Specifically                                                     // 1048
-// whitelist operations, rather than blacklist, so new complex                                                        // 1049
-// operations that are added aren't automatically allowed. A complex                                                  // 1050
-// operation is one that does more than just modify its target                                                        // 1051
-// field. For now this contains all update operations except '$rename'.                                               // 1052
-// http://docs.mongodb.org/manual/reference/operators/#update                                                         // 1053
-var ALLOWED_UPDATE_OPERATIONS = {                                                                                     // 1054
-  $inc:1, $set:1, $unset:1, $addToSet:1, $pop:1, $pullAll:1, $pull:1,                                                 // 1055
-  $pushAll:1, $push:1, $bit:1                                                                                         // 1056
-};                                                                                                                    // 1057
-                                                                                                                      // 1058
-// Simulate a mongo `remove` operation while validating access control                                                // 1059
-// rules. See #ValidatedChange                                                                                        // 1060
-Mongo.Collection.prototype._validatedRemove = function(userId, selector) {                                            // 1061
-  var self = this;                                                                                                    // 1062
-                                                                                                                      // 1063
-  var findOptions = {transform: null};                                                                                // 1064
-  if (!self._validators.fetchAllFields) {                                                                             // 1065
-    findOptions.fields = {};                                                                                          // 1066
-    _.each(self._validators.fetch, function(fieldName) {                                                              // 1067
-      findOptions.fields[fieldName] = 1;                                                                              // 1068
-    });                                                                                                               // 1069
-  }                                                                                                                   // 1070
-                                                                                                                      // 1071
-  var doc = self._collection.findOne(selector, findOptions);                                                          // 1072
-  if (!doc)                                                                                                           // 1073
-    return 0;                                                                                                         // 1074
-                                                                                                                      // 1075
-  // call user validators.                                                                                            // 1076
-  // Any deny returns true means denied.                                                                              // 1077
-  if (_.any(self._validators.remove.deny, function(validator) {                                                       // 1078
-    return validator(userId, transformDoc(validator, doc));                                                           // 1079
-  })) {                                                                                                               // 1080
-    throw new Meteor.Error(403, "Access denied");                                                                     // 1081
-  }                                                                                                                   // 1082
-  // Any allow returns true means proceed. Throw error if they all fail.                                              // 1083
-  if (_.all(self._validators.remove.allow, function(validator) {                                                      // 1084
-    return !validator(userId, transformDoc(validator, doc));                                                          // 1085
-  })) {                                                                                                               // 1086
-    throw new Meteor.Error(403, "Access denied");                                                                     // 1087
-  }                                                                                                                   // 1088
-                                                                                                                      // 1089
-  // Back when we supported arbitrary client-provided selectors, we actually                                          // 1090
-  // rewrote the selector to {_id: {$in: [ids that we found]}} before passing to                                      // 1091
-  // Mongo to avoid races, but since selector is guaranteed to already just be                                        // 1092
-  // an ID, we don't have to any more.                                                                                // 1093
-                                                                                                                      // 1094
-  return self._collection.remove.call(self._collection, selector);                                                    // 1095
-};                                                                                                                    // 1096
-                                                                                                                      // 1097
-/**                                                                                                                   // 1098
- * @deprecated in 0.9.1                                                                                               // 1099
- */                                                                                                                   // 1100
-Meteor.Collection = Mongo.Collection;                                                                                 // 1101
-                                                                                                                      // 1102
+  var findOptions = {transform: null};                                                                                // 1009
+  if (!self._validators.fetchAllFields) {                                                                             // 1010
+    findOptions.fields = {};                                                                                          // 1011
+    _.each(self._validators.fetch, function(fieldName) {                                                              // 1012
+      findOptions.fields[fieldName] = 1;                                                                              // 1013
+    });                                                                                                               // 1014
+  }                                                                                                                   // 1015
+                                                                                                                      // 1016
+  var doc = self._collection.findOne(selector, findOptions);                                                          // 1017
+  if (!doc)  // none satisfied!                                                                                       // 1018
+    return 0;                                                                                                         // 1019
+                                                                                                                      // 1020
+  var factoriedDoc;                                                                                                   // 1021
+                                                                                                                      // 1022
+  // call user validators.                                                                                            // 1023
+  // Any deny returns true means denied.                                                                              // 1024
+  if (_.any(self._validators.update.deny, function(validator) {                                                       // 1025
+    if (!factoriedDoc)                                                                                                // 1026
+      factoriedDoc = transformDoc(validator, doc);                                                                    // 1027
+    return validator(userId,                                                                                          // 1028
+                     factoriedDoc,                                                                                    // 1029
+                     fields,                                                                                          // 1030
+                     mutator);                                                                                        // 1031
+  })) {                                                                                                               // 1032
+    throw new Meteor.Error(403, "Access denied");                                                                     // 1033
+  }                                                                                                                   // 1034
+  // Any allow returns true means proceed. Throw error if they all fail.                                              // 1035
+  if (_.all(self._validators.update.allow, function(validator) {                                                      // 1036
+    if (!factoriedDoc)                                                                                                // 1037
+      factoriedDoc = transformDoc(validator, doc);                                                                    // 1038
+    return !validator(userId,                                                                                         // 1039
+                      factoriedDoc,                                                                                   // 1040
+                      fields,                                                                                         // 1041
+                      mutator);                                                                                       // 1042
+  })) {                                                                                                               // 1043
+    throw new Meteor.Error(403, "Access denied");                                                                     // 1044
+  }                                                                                                                   // 1045
+                                                                                                                      // 1046
+  options._forbidReplace = true;                                                                                      // 1047
+                                                                                                                      // 1048
+  // Back when we supported arbitrary client-provided selectors, we actually                                          // 1049
+  // rewrote the selector to include an _id clause before passing to Mongo to                                         // 1050
+  // avoid races, but since selector is guaranteed to already just be an ID, we                                       // 1051
+  // don't have to any more.                                                                                          // 1052
+                                                                                                                      // 1053
+  return self._collection.update.call(                                                                                // 1054
+    self._collection, selector, mutator, options);                                                                    // 1055
+};                                                                                                                    // 1056
+                                                                                                                      // 1057
+// Only allow these operations in validated updates. Specifically                                                     // 1058
+// whitelist operations, rather than blacklist, so new complex                                                        // 1059
+// operations that are added aren't automatically allowed. A complex                                                  // 1060
+// operation is one that does more than just modify its target                                                        // 1061
+// field. For now this contains all update operations except '$rename'.                                               // 1062
+// http://docs.mongodb.org/manual/reference/operators/#update                                                         // 1063
+var ALLOWED_UPDATE_OPERATIONS = {                                                                                     // 1064
+  $inc:1, $set:1, $unset:1, $addToSet:1, $pop:1, $pullAll:1, $pull:1,                                                 // 1065
+  $pushAll:1, $push:1, $bit:1                                                                                         // 1066
+};                                                                                                                    // 1067
+                                                                                                                      // 1068
+// Simulate a mongo `remove` operation while validating access control                                                // 1069
+// rules. See #ValidatedChange                                                                                        // 1070
+Mongo.Collection.prototype._validatedRemove = function(userId, selector) {                                            // 1071
+  var self = this;                                                                                                    // 1072
+                                                                                                                      // 1073
+  var findOptions = {transform: null};                                                                                // 1074
+  if (!self._validators.fetchAllFields) {                                                                             // 1075
+    findOptions.fields = {};                                                                                          // 1076
+    _.each(self._validators.fetch, function(fieldName) {                                                              // 1077
+      findOptions.fields[fieldName] = 1;                                                                              // 1078
+    });                                                                                                               // 1079
+  }                                                                                                                   // 1080
+                                                                                                                      // 1081
+  var doc = self._collection.findOne(selector, findOptions);                                                          // 1082
+  if (!doc)                                                                                                           // 1083
+    return 0;                                                                                                         // 1084
+                                                                                                                      // 1085
+  // call user validators.                                                                                            // 1086
+  // Any deny returns true means denied.                                                                              // 1087
+  if (_.any(self._validators.remove.deny, function(validator) {                                                       // 1088
+    return validator(userId, transformDoc(validator, doc));                                                           // 1089
+  })) {                                                                                                               // 1090
+    throw new Meteor.Error(403, "Access denied");                                                                     // 1091
+  }                                                                                                                   // 1092
+  // Any allow returns true means proceed. Throw error if they all fail.                                              // 1093
+  if (_.all(self._validators.remove.allow, function(validator) {                                                      // 1094
+    return !validator(userId, transformDoc(validator, doc));                                                          // 1095
+  })) {                                                                                                               // 1096
+    throw new Meteor.Error(403, "Access denied");                                                                     // 1097
+  }                                                                                                                   // 1098
+                                                                                                                      // 1099
+  // Back when we supported arbitrary client-provided selectors, we actually                                          // 1100
+  // rewrote the selector to {_id: {$in: [ids that we found]}} before passing to                                      // 1101
+  // Mongo to avoid races, but since selector is guaranteed to already just be                                        // 1102
+  // an ID, we don't have to any more.                                                                                // 1103
+                                                                                                                      // 1104
+  return self._collection.remove.call(self._collection, selector);                                                    // 1105
+};                                                                                                                    // 1106
+                                                                                                                      // 1107
+/**                                                                                                                   // 1108
+ * @deprecated in 0.9.1                                                                                               // 1109
+ */                                                                                                                   // 1110
+Meteor.Collection = Mongo.Collection;                                                                                 // 1111
+                                                                                                                      // 1112
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }).call(this);

@@ -485,762 +485,771 @@ MongoConnection.prototype._update = function (collection_name, selector, mod,   
     var isModify = isModificationMod(mongoMod);                                                                       // 452
     var knownId = (isModify ? selector._id : mod._id);                                                                // 453
                                                                                                                       // 454
-    if (options.upsert && (! knownId) && options.insertedId) {                                                        // 455
-      // XXX In future we could do a real upsert for the mongo id generation                                          // 456
-      // case, if the the node mongo driver gives us back the id of the upserted                                      // 457
-      // doc (which our current version does not).                                                                    // 458
-      simulateUpsertWithInsertedId(                                                                                   // 459
-        collection, mongoSelector, mongoMod,                                                                          // 460
-        isModify, options,                                                                                            // 461
-        // This callback does not need to be bindEnvironment'ed because                                               // 462
-        // simulateUpsertWithInsertedId() wraps it and then passes it through                                         // 463
-        // bindEnvironmentForWrite.                                                                                   // 464
-        function (err, result) {                                                                                      // 465
-          // If we got here via a upsert() call, then options._returnObject will                                      // 466
-          // be set and we should return the whole object. Otherwise, we should                                       // 467
-          // just return the number of affected docs to match the mongo API.                                          // 468
-          if (result && ! options._returnObject)                                                                      // 469
-            callback(err, result.numberAffected);                                                                     // 470
-          else                                                                                                        // 471
-            callback(err, result);                                                                                    // 472
-        }                                                                                                             // 473
-      );                                                                                                              // 474
-    } else {                                                                                                          // 475
-      collection.update(                                                                                              // 476
-        mongoSelector, mongoMod, mongoOpts,                                                                           // 477
-        bindEnvironmentForWrite(function (err, result, extra) {                                                       // 478
-          if (! err) {                                                                                                // 479
-            if (result && options._returnObject) {                                                                    // 480
-              result = { numberAffected: result };                                                                    // 481
-              // If this was an upsert() call, and we ended up                                                        // 482
-              // inserting a new doc and we know its id, then                                                         // 483
-              // return that id as well.                                                                              // 484
-              if (options.upsert && knownId &&                                                                        // 485
-                  ! extra.updatedExisting)                                                                            // 486
-                result.insertedId = knownId;                                                                          // 487
-            }                                                                                                         // 488
-          }                                                                                                           // 489
-          callback(err, result);                                                                                      // 490
-        }));                                                                                                          // 491
-    }                                                                                                                 // 492
-  } catch (e) {                                                                                                       // 493
-    write.committed();                                                                                                // 494
-    throw e;                                                                                                          // 495
-  }                                                                                                                   // 496
-};                                                                                                                    // 497
-                                                                                                                      // 498
-var isModificationMod = function (mod) {                                                                              // 499
-  for (var k in mod)                                                                                                  // 500
-    if (k.substr(0, 1) === '$')                                                                                       // 501
-      return true;                                                                                                    // 502
-  return false;                                                                                                       // 503
-};                                                                                                                    // 504
-                                                                                                                      // 505
-var NUM_OPTIMISTIC_TRIES = 3;                                                                                         // 506
+    if (options._forbidReplace && ! isModify) {                                                                       // 455
+      var e = new Error("Invalid modifier. Replacements are forbidden.");                                             // 456
+      if (callback) {                                                                                                 // 457
+        return callback(e);                                                                                           // 458
+      } else {                                                                                                        // 459
+        throw e;                                                                                                      // 460
+      }                                                                                                               // 461
+    }                                                                                                                 // 462
+                                                                                                                      // 463
+    if (options.upsert && (! knownId) && options.insertedId) {                                                        // 464
+      // XXX In future we could do a real upsert for the mongo id generation                                          // 465
+      // case, if the the node mongo driver gives us back the id of the upserted                                      // 466
+      // doc (which our current version does not).                                                                    // 467
+      simulateUpsertWithInsertedId(                                                                                   // 468
+        collection, mongoSelector, mongoMod,                                                                          // 469
+        isModify, options,                                                                                            // 470
+        // This callback does not need to be bindEnvironment'ed because                                               // 471
+        // simulateUpsertWithInsertedId() wraps it and then passes it through                                         // 472
+        // bindEnvironmentForWrite.                                                                                   // 473
+        function (err, result) {                                                                                      // 474
+          // If we got here via a upsert() call, then options._returnObject will                                      // 475
+          // be set and we should return the whole object. Otherwise, we should                                       // 476
+          // just return the number of affected docs to match the mongo API.                                          // 477
+          if (result && ! options._returnObject)                                                                      // 478
+            callback(err, result.numberAffected);                                                                     // 479
+          else                                                                                                        // 480
+            callback(err, result);                                                                                    // 481
+        }                                                                                                             // 482
+      );                                                                                                              // 483
+    } else {                                                                                                          // 484
+      collection.update(                                                                                              // 485
+        mongoSelector, mongoMod, mongoOpts,                                                                           // 486
+        bindEnvironmentForWrite(function (err, result, extra) {                                                       // 487
+          if (! err) {                                                                                                // 488
+            if (result && options._returnObject) {                                                                    // 489
+              result = { numberAffected: result };                                                                    // 490
+              // If this was an upsert() call, and we ended up                                                        // 491
+              // inserting a new doc and we know its id, then                                                         // 492
+              // return that id as well.                                                                              // 493
+              if (options.upsert && knownId &&                                                                        // 494
+                  ! extra.updatedExisting)                                                                            // 495
+                result.insertedId = knownId;                                                                          // 496
+            }                                                                                                         // 497
+          }                                                                                                           // 498
+          callback(err, result);                                                                                      // 499
+        }));                                                                                                          // 500
+    }                                                                                                                 // 501
+  } catch (e) {                                                                                                       // 502
+    write.committed();                                                                                                // 503
+    throw e;                                                                                                          // 504
+  }                                                                                                                   // 505
+};                                                                                                                    // 506
                                                                                                                       // 507
-// exposed for testing                                                                                                // 508
-MongoConnection._isCannotChangeIdError = function (err) {                                                             // 509
-  // either of these checks should work, but just to be safe...                                                       // 510
-  return (err.code === 13596 ||                                                                                       // 511
-          err.err.indexOf("cannot change _id of a document") === 0);                                                  // 512
+var isModificationMod = function (mod) {                                                                              // 508
+  for (var k in mod)                                                                                                  // 509
+    if (k.substr(0, 1) === '$')                                                                                       // 510
+      return true;                                                                                                    // 511
+  return false;                                                                                                       // 512
 };                                                                                                                    // 513
                                                                                                                       // 514
-var simulateUpsertWithInsertedId = function (collection, selector, mod,                                               // 515
-                                             isModify, options, callback) {                                           // 516
-  // STRATEGY:  First try doing a plain update.  If it affected 0 documents,                                          // 517
-  // then without affecting the database, we know we should probably do an                                            // 518
-  // insert.  We then do a *conditional* insert that will fail in the case                                            // 519
-  // of a race condition.  This conditional insert is actually an                                                     // 520
-  // upsert-replace with an _id, which will never successfully update an                                              // 521
-  // existing document.  If this upsert fails with an error saying it                                                 // 522
-  // couldn't change an existing _id, then we know an intervening write has                                           // 523
-  // caused the query to match something.  We go back to step one and repeat.                                         // 524
-  // Like all "optimistic write" schemes, we rely on the fact that it's                                               // 525
-  // unlikely our writes will continue to be interfered with under normal                                             // 526
-  // circumstances (though sufficiently heavy contention with writers                                                 // 527
-  // disagreeing on the existence of an object will cause writes to fail                                              // 528
-  // in theory).                                                                                                      // 529
-                                                                                                                      // 530
-  var newDoc;                                                                                                         // 531
-  // Run this code up front so that it fails fast if someone uses                                                     // 532
-  // a Mongo update operator we don't support.                                                                        // 533
-  if (isModify) {                                                                                                     // 534
-    // We've already run replaceTypes/replaceMeteorAtomWithMongo on                                                   // 535
-    // selector and mod.  We assume it doesn't matter, as far as                                                      // 536
-    // the behavior of modifiers is concerned, whether `_modify`                                                      // 537
-    // is run on EJSON or on mongo-converted EJSON.                                                                   // 538
-    var selectorDoc = LocalCollection._removeDollarOperators(selector);                                               // 539
-    LocalCollection._modify(selectorDoc, mod, {isInsert: true});                                                      // 540
-    newDoc = selectorDoc;                                                                                             // 541
-  } else {                                                                                                            // 542
-    newDoc = mod;                                                                                                     // 543
-  }                                                                                                                   // 544
-                                                                                                                      // 545
-  var insertedId = options.insertedId; // must exist                                                                  // 546
-  var mongoOptsForUpdate = {                                                                                          // 547
-    safe: true,                                                                                                       // 548
-    multi: options.multi                                                                                              // 549
-  };                                                                                                                  // 550
-  var mongoOptsForInsert = {                                                                                          // 551
-    safe: true,                                                                                                       // 552
-    upsert: true                                                                                                      // 553
-  };                                                                                                                  // 554
-                                                                                                                      // 555
-  var tries = NUM_OPTIMISTIC_TRIES;                                                                                   // 556
-                                                                                                                      // 557
-  var doUpdate = function () {                                                                                        // 558
-    tries--;                                                                                                          // 559
-    if (! tries) {                                                                                                    // 560
-      callback(new Error("Upsert failed after " + NUM_OPTIMISTIC_TRIES + " tries."));                                 // 561
-    } else {                                                                                                          // 562
-      collection.update(selector, mod, mongoOptsForUpdate,                                                            // 563
-                        bindEnvironmentForWrite(function (err, result) {                                              // 564
-                          if (err)                                                                                    // 565
-                            callback(err);                                                                            // 566
-                          else if (result)                                                                            // 567
-                            callback(null, {                                                                          // 568
-                              numberAffected: result                                                                  // 569
-                            });                                                                                       // 570
-                          else                                                                                        // 571
-                            doConditionalInsert();                                                                    // 572
-                        }));                                                                                          // 573
-    }                                                                                                                 // 574
-  };                                                                                                                  // 575
-                                                                                                                      // 576
-  var doConditionalInsert = function () {                                                                             // 577
-    var replacementWithId = _.extend(                                                                                 // 578
-      replaceTypes({_id: insertedId}, replaceMeteorAtomWithMongo),                                                    // 579
-      newDoc);                                                                                                        // 580
-    collection.update(selector, replacementWithId, mongoOptsForInsert,                                                // 581
-                      bindEnvironmentForWrite(function (err, result) {                                                // 582
-                        if (err) {                                                                                    // 583
-                          // figure out if this is a                                                                  // 584
-                          // "cannot change _id of document" error, and                                               // 585
-                          // if so, try doUpdate() again, up to 3 times.                                              // 586
-                          if (MongoConnection._isCannotChangeIdError(err)) {                                          // 587
-                            doUpdate();                                                                               // 588
-                          } else {                                                                                    // 589
-                            callback(err);                                                                            // 590
-                          }                                                                                           // 591
-                        } else {                                                                                      // 592
-                          callback(null, {                                                                            // 593
-                            numberAffected: result,                                                                   // 594
-                            insertedId: insertedId                                                                    // 595
-                          });                                                                                         // 596
-                        }                                                                                             // 597
-                      }));                                                                                            // 598
-  };                                                                                                                  // 599
-                                                                                                                      // 600
-  doUpdate();                                                                                                         // 601
-};                                                                                                                    // 602
-                                                                                                                      // 603
-_.each(["insert", "update", "remove", "dropCollection"], function (method) {                                          // 604
-  MongoConnection.prototype[method] = function (/* arguments */) {                                                    // 605
-    var self = this;                                                                                                  // 606
-    return Meteor.wrapAsync(self["_" + method]).apply(self, arguments);                                               // 607
+var NUM_OPTIMISTIC_TRIES = 3;                                                                                         // 515
+                                                                                                                      // 516
+// exposed for testing                                                                                                // 517
+MongoConnection._isCannotChangeIdError = function (err) {                                                             // 518
+  // either of these checks should work, but just to be safe...                                                       // 519
+  return (err.code === 13596 ||                                                                                       // 520
+          err.err.indexOf("cannot change _id of a document") === 0);                                                  // 521
+};                                                                                                                    // 522
+                                                                                                                      // 523
+var simulateUpsertWithInsertedId = function (collection, selector, mod,                                               // 524
+                                             isModify, options, callback) {                                           // 525
+  // STRATEGY:  First try doing a plain update.  If it affected 0 documents,                                          // 526
+  // then without affecting the database, we know we should probably do an                                            // 527
+  // insert.  We then do a *conditional* insert that will fail in the case                                            // 528
+  // of a race condition.  This conditional insert is actually an                                                     // 529
+  // upsert-replace with an _id, which will never successfully update an                                              // 530
+  // existing document.  If this upsert fails with an error saying it                                                 // 531
+  // couldn't change an existing _id, then we know an intervening write has                                           // 532
+  // caused the query to match something.  We go back to step one and repeat.                                         // 533
+  // Like all "optimistic write" schemes, we rely on the fact that it's                                               // 534
+  // unlikely our writes will continue to be interfered with under normal                                             // 535
+  // circumstances (though sufficiently heavy contention with writers                                                 // 536
+  // disagreeing on the existence of an object will cause writes to fail                                              // 537
+  // in theory).                                                                                                      // 538
+                                                                                                                      // 539
+  var newDoc;                                                                                                         // 540
+  // Run this code up front so that it fails fast if someone uses                                                     // 541
+  // a Mongo update operator we don't support.                                                                        // 542
+  if (isModify) {                                                                                                     // 543
+    // We've already run replaceTypes/replaceMeteorAtomWithMongo on                                                   // 544
+    // selector and mod.  We assume it doesn't matter, as far as                                                      // 545
+    // the behavior of modifiers is concerned, whether `_modify`                                                      // 546
+    // is run on EJSON or on mongo-converted EJSON.                                                                   // 547
+    var selectorDoc = LocalCollection._removeDollarOperators(selector);                                               // 548
+    LocalCollection._modify(selectorDoc, mod, {isInsert: true});                                                      // 549
+    newDoc = selectorDoc;                                                                                             // 550
+  } else {                                                                                                            // 551
+    newDoc = mod;                                                                                                     // 552
+  }                                                                                                                   // 553
+                                                                                                                      // 554
+  var insertedId = options.insertedId; // must exist                                                                  // 555
+  var mongoOptsForUpdate = {                                                                                          // 556
+    safe: true,                                                                                                       // 557
+    multi: options.multi                                                                                              // 558
+  };                                                                                                                  // 559
+  var mongoOptsForInsert = {                                                                                          // 560
+    safe: true,                                                                                                       // 561
+    upsert: true                                                                                                      // 562
+  };                                                                                                                  // 563
+                                                                                                                      // 564
+  var tries = NUM_OPTIMISTIC_TRIES;                                                                                   // 565
+                                                                                                                      // 566
+  var doUpdate = function () {                                                                                        // 567
+    tries--;                                                                                                          // 568
+    if (! tries) {                                                                                                    // 569
+      callback(new Error("Upsert failed after " + NUM_OPTIMISTIC_TRIES + " tries."));                                 // 570
+    } else {                                                                                                          // 571
+      collection.update(selector, mod, mongoOptsForUpdate,                                                            // 572
+                        bindEnvironmentForWrite(function (err, result) {                                              // 573
+                          if (err)                                                                                    // 574
+                            callback(err);                                                                            // 575
+                          else if (result)                                                                            // 576
+                            callback(null, {                                                                          // 577
+                              numberAffected: result                                                                  // 578
+                            });                                                                                       // 579
+                          else                                                                                        // 580
+                            doConditionalInsert();                                                                    // 581
+                        }));                                                                                          // 582
+    }                                                                                                                 // 583
+  };                                                                                                                  // 584
+                                                                                                                      // 585
+  var doConditionalInsert = function () {                                                                             // 586
+    var replacementWithId = _.extend(                                                                                 // 587
+      replaceTypes({_id: insertedId}, replaceMeteorAtomWithMongo),                                                    // 588
+      newDoc);                                                                                                        // 589
+    collection.update(selector, replacementWithId, mongoOptsForInsert,                                                // 590
+                      bindEnvironmentForWrite(function (err, result) {                                                // 591
+                        if (err) {                                                                                    // 592
+                          // figure out if this is a                                                                  // 593
+                          // "cannot change _id of document" error, and                                               // 594
+                          // if so, try doUpdate() again, up to 3 times.                                              // 595
+                          if (MongoConnection._isCannotChangeIdError(err)) {                                          // 596
+                            doUpdate();                                                                               // 597
+                          } else {                                                                                    // 598
+                            callback(err);                                                                            // 599
+                          }                                                                                           // 600
+                        } else {                                                                                      // 601
+                          callback(null, {                                                                            // 602
+                            numberAffected: result,                                                                   // 603
+                            insertedId: insertedId                                                                    // 604
+                          });                                                                                         // 605
+                        }                                                                                             // 606
+                      }));                                                                                            // 607
   };                                                                                                                  // 608
-});                                                                                                                   // 609
-                                                                                                                      // 610
-// XXX MongoConnection.upsert() does not return the id of the inserted document                                       // 611
-// unless you set it explicitly in the selector or modifier (as a replacement                                         // 612
-// doc).                                                                                                              // 613
-MongoConnection.prototype.upsert = function (collectionName, selector, mod,                                           // 614
-                                             options, callback) {                                                     // 615
-  var self = this;                                                                                                    // 616
-  if (typeof options === "function" && ! callback) {                                                                  // 617
-    callback = options;                                                                                               // 618
-    options = {};                                                                                                     // 619
-  }                                                                                                                   // 620
-                                                                                                                      // 621
-  return self.update(collectionName, selector, mod,                                                                   // 622
-                     _.extend({}, options, {                                                                          // 623
-                       upsert: true,                                                                                  // 624
-                       _returnObject: true                                                                            // 625
-                     }), callback);                                                                                   // 626
-};                                                                                                                    // 627
-                                                                                                                      // 628
-MongoConnection.prototype.find = function (collectionName, selector, options) {                                       // 629
-  var self = this;                                                                                                    // 630
-                                                                                                                      // 631
-  if (arguments.length === 1)                                                                                         // 632
-    selector = {};                                                                                                    // 633
-                                                                                                                      // 634
-  return new Cursor(                                                                                                  // 635
-    self, new CursorDescription(collectionName, selector, options));                                                  // 636
-};                                                                                                                    // 637
-                                                                                                                      // 638
-MongoConnection.prototype.findOne = function (collection_name, selector,                                              // 639
-                                              options) {                                                              // 640
-  var self = this;                                                                                                    // 641
-  if (arguments.length === 1)                                                                                         // 642
-    selector = {};                                                                                                    // 643
-                                                                                                                      // 644
-  options = options || {};                                                                                            // 645
-  options.limit = 1;                                                                                                  // 646
-  return self.find(collection_name, selector, options).fetch()[0];                                                    // 647
-};                                                                                                                    // 648
-                                                                                                                      // 649
-// We'll actually design an index API later. For now, we just pass through to                                         // 650
-// Mongo's, but make it synchronous.                                                                                  // 651
-MongoConnection.prototype._ensureIndex = function (collectionName, index,                                             // 652
-                                                   options) {                                                         // 653
-  var self = this;                                                                                                    // 654
-  options = _.extend({safe: true}, options);                                                                          // 655
-                                                                                                                      // 656
-  // We expect this function to be called at startup, not from within a method,                                       // 657
-  // so we don't interact with the write fence.                                                                       // 658
-  var collection = self._getCollection(collectionName);                                                               // 659
-  var future = new Future;                                                                                            // 660
-  var indexName = collection.ensureIndex(index, options, future.resolver());                                          // 661
-  future.wait();                                                                                                      // 662
-};                                                                                                                    // 663
-MongoConnection.prototype._dropIndex = function (collectionName, index) {                                             // 664
-  var self = this;                                                                                                    // 665
-                                                                                                                      // 666
-  // This function is only used by test code, not within a method, so we don't                                        // 667
-  // interact with the write fence.                                                                                   // 668
-  var collection = self._getCollection(collectionName);                                                               // 669
-  var future = new Future;                                                                                            // 670
-  var indexName = collection.dropIndex(index, future.resolver());                                                     // 671
-  future.wait();                                                                                                      // 672
-};                                                                                                                    // 673
-                                                                                                                      // 674
-// CURSORS                                                                                                            // 675
-                                                                                                                      // 676
-// There are several classes which relate to cursors:                                                                 // 677
-//                                                                                                                    // 678
-// CursorDescription represents the arguments used to construct a cursor:                                             // 679
-// collectionName, selector, and (find) options.  Because it is used as a key                                         // 680
-// for cursor de-dup, everything in it should either be JSON-stringifiable or                                         // 681
-// not affect observeChanges output (eg, options.transform functions are not                                          // 682
-// stringifiable but do not affect observeChanges).                                                                   // 683
-//                                                                                                                    // 684
-// SynchronousCursor is a wrapper around a MongoDB cursor                                                             // 685
-// which includes fully-synchronous versions of forEach, etc.                                                         // 686
+                                                                                                                      // 609
+  doUpdate();                                                                                                         // 610
+};                                                                                                                    // 611
+                                                                                                                      // 612
+_.each(["insert", "update", "remove", "dropCollection"], function (method) {                                          // 613
+  MongoConnection.prototype[method] = function (/* arguments */) {                                                    // 614
+    var self = this;                                                                                                  // 615
+    return Meteor.wrapAsync(self["_" + method]).apply(self, arguments);                                               // 616
+  };                                                                                                                  // 617
+});                                                                                                                   // 618
+                                                                                                                      // 619
+// XXX MongoConnection.upsert() does not return the id of the inserted document                                       // 620
+// unless you set it explicitly in the selector or modifier (as a replacement                                         // 621
+// doc).                                                                                                              // 622
+MongoConnection.prototype.upsert = function (collectionName, selector, mod,                                           // 623
+                                             options, callback) {                                                     // 624
+  var self = this;                                                                                                    // 625
+  if (typeof options === "function" && ! callback) {                                                                  // 626
+    callback = options;                                                                                               // 627
+    options = {};                                                                                                     // 628
+  }                                                                                                                   // 629
+                                                                                                                      // 630
+  return self.update(collectionName, selector, mod,                                                                   // 631
+                     _.extend({}, options, {                                                                          // 632
+                       upsert: true,                                                                                  // 633
+                       _returnObject: true                                                                            // 634
+                     }), callback);                                                                                   // 635
+};                                                                                                                    // 636
+                                                                                                                      // 637
+MongoConnection.prototype.find = function (collectionName, selector, options) {                                       // 638
+  var self = this;                                                                                                    // 639
+                                                                                                                      // 640
+  if (arguments.length === 1)                                                                                         // 641
+    selector = {};                                                                                                    // 642
+                                                                                                                      // 643
+  return new Cursor(                                                                                                  // 644
+    self, new CursorDescription(collectionName, selector, options));                                                  // 645
+};                                                                                                                    // 646
+                                                                                                                      // 647
+MongoConnection.prototype.findOne = function (collection_name, selector,                                              // 648
+                                              options) {                                                              // 649
+  var self = this;                                                                                                    // 650
+  if (arguments.length === 1)                                                                                         // 651
+    selector = {};                                                                                                    // 652
+                                                                                                                      // 653
+  options = options || {};                                                                                            // 654
+  options.limit = 1;                                                                                                  // 655
+  return self.find(collection_name, selector, options).fetch()[0];                                                    // 656
+};                                                                                                                    // 657
+                                                                                                                      // 658
+// We'll actually design an index API later. For now, we just pass through to                                         // 659
+// Mongo's, but make it synchronous.                                                                                  // 660
+MongoConnection.prototype._ensureIndex = function (collectionName, index,                                             // 661
+                                                   options) {                                                         // 662
+  var self = this;                                                                                                    // 663
+  options = _.extend({safe: true}, options);                                                                          // 664
+                                                                                                                      // 665
+  // We expect this function to be called at startup, not from within a method,                                       // 666
+  // so we don't interact with the write fence.                                                                       // 667
+  var collection = self._getCollection(collectionName);                                                               // 668
+  var future = new Future;                                                                                            // 669
+  var indexName = collection.ensureIndex(index, options, future.resolver());                                          // 670
+  future.wait();                                                                                                      // 671
+};                                                                                                                    // 672
+MongoConnection.prototype._dropIndex = function (collectionName, index) {                                             // 673
+  var self = this;                                                                                                    // 674
+                                                                                                                      // 675
+  // This function is only used by test code, not within a method, so we don't                                        // 676
+  // interact with the write fence.                                                                                   // 677
+  var collection = self._getCollection(collectionName);                                                               // 678
+  var future = new Future;                                                                                            // 679
+  var indexName = collection.dropIndex(index, future.resolver());                                                     // 680
+  future.wait();                                                                                                      // 681
+};                                                                                                                    // 682
+                                                                                                                      // 683
+// CURSORS                                                                                                            // 684
+                                                                                                                      // 685
+// There are several classes which relate to cursors:                                                                 // 686
 //                                                                                                                    // 687
-// Cursor is the cursor object returned from find(), which implements the                                             // 688
-// documented Mongo.Collection cursor API.  It wraps a CursorDescription and a                                        // 689
-// SynchronousCursor (lazily: it doesn't contact Mongo until you call a method                                        // 690
-// like fetch or forEach on it).                                                                                      // 691
-//                                                                                                                    // 692
-// ObserveHandle is the "observe handle" returned from observeChanges. It has a                                       // 693
-// reference to an ObserveMultiplexer.                                                                                // 694
-//                                                                                                                    // 695
-// ObserveMultiplexer allows multiple identical ObserveHandles to be driven by a                                      // 696
-// single observe driver.                                                                                             // 697
-//                                                                                                                    // 698
-// There are two "observe drivers" which drive ObserveMultiplexers:                                                   // 699
-//   - PollingObserveDriver caches the results of a query and reruns it when                                          // 700
-//     necessary.                                                                                                     // 701
-//   - OplogObserveDriver follows the Mongo operation log to directly observe                                         // 702
-//     database changes.                                                                                              // 703
-// Both implementations follow the same simple interface: when you create them,                                       // 704
-// they start sending observeChanges callbacks (and a ready() invocation) to                                          // 705
-// their ObserveMultiplexer, and you stop them by calling their stop() method.                                        // 706
-                                                                                                                      // 707
-CursorDescription = function (collectionName, selector, options) {                                                    // 708
-  var self = this;                                                                                                    // 709
-  self.collectionName = collectionName;                                                                               // 710
-  self.selector = Mongo.Collection._rewriteSelector(selector);                                                        // 711
-  self.options = options || {};                                                                                       // 712
-};                                                                                                                    // 713
-                                                                                                                      // 714
-Cursor = function (mongo, cursorDescription) {                                                                        // 715
-  var self = this;                                                                                                    // 716
-                                                                                                                      // 717
-  self._mongo = mongo;                                                                                                // 718
-  self._cursorDescription = cursorDescription;                                                                        // 719
-  self._synchronousCursor = null;                                                                                     // 720
-};                                                                                                                    // 721
-                                                                                                                      // 722
-_.each(['forEach', 'map', 'fetch', 'count'], function (method) {                                                      // 723
-  Cursor.prototype[method] = function () {                                                                            // 724
-    var self = this;                                                                                                  // 725
+// CursorDescription represents the arguments used to construct a cursor:                                             // 688
+// collectionName, selector, and (find) options.  Because it is used as a key                                         // 689
+// for cursor de-dup, everything in it should either be JSON-stringifiable or                                         // 690
+// not affect observeChanges output (eg, options.transform functions are not                                          // 691
+// stringifiable but do not affect observeChanges).                                                                   // 692
+//                                                                                                                    // 693
+// SynchronousCursor is a wrapper around a MongoDB cursor                                                             // 694
+// which includes fully-synchronous versions of forEach, etc.                                                         // 695
+//                                                                                                                    // 696
+// Cursor is the cursor object returned from find(), which implements the                                             // 697
+// documented Mongo.Collection cursor API.  It wraps a CursorDescription and a                                        // 698
+// SynchronousCursor (lazily: it doesn't contact Mongo until you call a method                                        // 699
+// like fetch or forEach on it).                                                                                      // 700
+//                                                                                                                    // 701
+// ObserveHandle is the "observe handle" returned from observeChanges. It has a                                       // 702
+// reference to an ObserveMultiplexer.                                                                                // 703
+//                                                                                                                    // 704
+// ObserveMultiplexer allows multiple identical ObserveHandles to be driven by a                                      // 705
+// single observe driver.                                                                                             // 706
+//                                                                                                                    // 707
+// There are two "observe drivers" which drive ObserveMultiplexers:                                                   // 708
+//   - PollingObserveDriver caches the results of a query and reruns it when                                          // 709
+//     necessary.                                                                                                     // 710
+//   - OplogObserveDriver follows the Mongo operation log to directly observe                                         // 711
+//     database changes.                                                                                              // 712
+// Both implementations follow the same simple interface: when you create them,                                       // 713
+// they start sending observeChanges callbacks (and a ready() invocation) to                                          // 714
+// their ObserveMultiplexer, and you stop them by calling their stop() method.                                        // 715
+                                                                                                                      // 716
+CursorDescription = function (collectionName, selector, options) {                                                    // 717
+  var self = this;                                                                                                    // 718
+  self.collectionName = collectionName;                                                                               // 719
+  self.selector = Mongo.Collection._rewriteSelector(selector);                                                        // 720
+  self.options = options || {};                                                                                       // 721
+};                                                                                                                    // 722
+                                                                                                                      // 723
+Cursor = function (mongo, cursorDescription) {                                                                        // 724
+  var self = this;                                                                                                    // 725
                                                                                                                       // 726
-    // You can only observe a tailable cursor.                                                                        // 727
-    if (self._cursorDescription.options.tailable)                                                                     // 728
-      throw new Error("Cannot call " + method + " on a tailable cursor");                                             // 729
-                                                                                                                      // 730
-    if (!self._synchronousCursor) {                                                                                   // 731
-      self._synchronousCursor = self._mongo._createSynchronousCursor(                                                 // 732
-        self._cursorDescription, {                                                                                    // 733
-          // Make sure that the "self" argument to forEach/map callbacks is the                                       // 734
-          // Cursor, not the SynchronousCursor.                                                                       // 735
-          selfForIteration: self,                                                                                     // 736
-          useTransform: true                                                                                          // 737
-        });                                                                                                           // 738
-    }                                                                                                                 // 739
-                                                                                                                      // 740
-    return self._synchronousCursor[method].apply(                                                                     // 741
-      self._synchronousCursor, arguments);                                                                            // 742
-  };                                                                                                                  // 743
-});                                                                                                                   // 744
-                                                                                                                      // 745
-// Since we don't actually have a "nextObject" interface, there's really no                                           // 746
-// reason to have a "rewind" interface.  All it did was make multiple calls                                           // 747
-// to fetch/map/forEach return nothing the second time.                                                               // 748
-// XXX COMPAT WITH 0.8.1                                                                                              // 749
-Cursor.prototype.rewind = function () {                                                                               // 750
-};                                                                                                                    // 751
-                                                                                                                      // 752
-Cursor.prototype.getTransform = function () {                                                                         // 753
-  return this._cursorDescription.options.transform;                                                                   // 754
-};                                                                                                                    // 755
-                                                                                                                      // 756
-// When you call Meteor.publish() with a function that returns a Cursor, we need                                      // 757
-// to transmute it into the equivalent subscription.  This is the function that                                       // 758
-// does that.                                                                                                         // 759
-                                                                                                                      // 760
-Cursor.prototype._publishCursor = function (sub) {                                                                    // 761
-  var self = this;                                                                                                    // 762
-  var collection = self._cursorDescription.collectionName;                                                            // 763
-  return Mongo.Collection._publishCursor(self, sub, collection);                                                      // 764
-};                                                                                                                    // 765
-                                                                                                                      // 766
-// Used to guarantee that publish functions return at most one cursor per                                             // 767
-// collection. Private, because we might later have cursors that include                                              // 768
-// documents from multiple collections somehow.                                                                       // 769
-Cursor.prototype._getCollectionName = function () {                                                                   // 770
+  self._mongo = mongo;                                                                                                // 727
+  self._cursorDescription = cursorDescription;                                                                        // 728
+  self._synchronousCursor = null;                                                                                     // 729
+};                                                                                                                    // 730
+                                                                                                                      // 731
+_.each(['forEach', 'map', 'fetch', 'count'], function (method) {                                                      // 732
+  Cursor.prototype[method] = function () {                                                                            // 733
+    var self = this;                                                                                                  // 734
+                                                                                                                      // 735
+    // You can only observe a tailable cursor.                                                                        // 736
+    if (self._cursorDescription.options.tailable)                                                                     // 737
+      throw new Error("Cannot call " + method + " on a tailable cursor");                                             // 738
+                                                                                                                      // 739
+    if (!self._synchronousCursor) {                                                                                   // 740
+      self._synchronousCursor = self._mongo._createSynchronousCursor(                                                 // 741
+        self._cursorDescription, {                                                                                    // 742
+          // Make sure that the "self" argument to forEach/map callbacks is the                                       // 743
+          // Cursor, not the SynchronousCursor.                                                                       // 744
+          selfForIteration: self,                                                                                     // 745
+          useTransform: true                                                                                          // 746
+        });                                                                                                           // 747
+    }                                                                                                                 // 748
+                                                                                                                      // 749
+    return self._synchronousCursor[method].apply(                                                                     // 750
+      self._synchronousCursor, arguments);                                                                            // 751
+  };                                                                                                                  // 752
+});                                                                                                                   // 753
+                                                                                                                      // 754
+// Since we don't actually have a "nextObject" interface, there's really no                                           // 755
+// reason to have a "rewind" interface.  All it did was make multiple calls                                           // 756
+// to fetch/map/forEach return nothing the second time.                                                               // 757
+// XXX COMPAT WITH 0.8.1                                                                                              // 758
+Cursor.prototype.rewind = function () {                                                                               // 759
+};                                                                                                                    // 760
+                                                                                                                      // 761
+Cursor.prototype.getTransform = function () {                                                                         // 762
+  return this._cursorDescription.options.transform;                                                                   // 763
+};                                                                                                                    // 764
+                                                                                                                      // 765
+// When you call Meteor.publish() with a function that returns a Cursor, we need                                      // 766
+// to transmute it into the equivalent subscription.  This is the function that                                       // 767
+// does that.                                                                                                         // 768
+                                                                                                                      // 769
+Cursor.prototype._publishCursor = function (sub) {                                                                    // 770
   var self = this;                                                                                                    // 771
-  return self._cursorDescription.collectionName;                                                                      // 772
-}                                                                                                                     // 773
-                                                                                                                      // 774
-Cursor.prototype.observe = function (callbacks) {                                                                     // 775
-  var self = this;                                                                                                    // 776
-  return LocalCollection._observeFromObserveChanges(self, callbacks);                                                 // 777
-};                                                                                                                    // 778
-                                                                                                                      // 779
-Cursor.prototype.observeChanges = function (callbacks) {                                                              // 780
-  var self = this;                                                                                                    // 781
-  var ordered = LocalCollection._observeChangesCallbacksAreOrdered(callbacks);                                        // 782
-  return self._mongo._observeChanges(                                                                                 // 783
-    self._cursorDescription, ordered, callbacks);                                                                     // 784
-};                                                                                                                    // 785
-                                                                                                                      // 786
-MongoConnection.prototype._createSynchronousCursor = function(                                                        // 787
-    cursorDescription, options) {                                                                                     // 788
-  var self = this;                                                                                                    // 789
-  options = _.pick(options || {}, 'selfForIteration', 'useTransform');                                                // 790
-                                                                                                                      // 791
-  var collection = self._getCollection(cursorDescription.collectionName);                                             // 792
-  var cursorOptions = cursorDescription.options;                                                                      // 793
-  var mongoOptions = {                                                                                                // 794
-    sort: cursorOptions.sort,                                                                                         // 795
-    limit: cursorOptions.limit,                                                                                       // 796
-    skip: cursorOptions.skip                                                                                          // 797
-  };                                                                                                                  // 798
-                                                                                                                      // 799
-  // Do we want a tailable cursor (which only works on capped collections)?                                           // 800
-  if (cursorOptions.tailable) {                                                                                       // 801
-    // We want a tailable cursor...                                                                                   // 802
-    mongoOptions.tailable = true;                                                                                     // 803
-    // ... and for the server to wait a bit if any getMore has no data (rather                                        // 804
-    // than making us put the relevant sleeps in the client)...                                                       // 805
-    mongoOptions.awaitdata = true;                                                                                    // 806
-    // ... and to keep querying the server indefinitely rather than just 5 times                                      // 807
-    // if there's no more data.                                                                                       // 808
-    mongoOptions.numberOfRetries = -1;                                                                                // 809
-    // And if this is on the oplog collection and the cursor specifies a 'ts',                                        // 810
-    // then set the undocumented oplog replay flag, which does a special scan to                                      // 811
-    // find the first document (instead of creating an index on ts). This is a                                        // 812
-    // very hard-coded Mongo flag which only works on the oplog collection and                                        // 813
-    // only works with the ts field.                                                                                  // 814
-    if (cursorDescription.collectionName === OPLOG_COLLECTION &&                                                      // 815
-        cursorDescription.selector.ts) {                                                                              // 816
-      mongoOptions.oplogReplay = true;                                                                                // 817
-    }                                                                                                                 // 818
-  }                                                                                                                   // 819
-                                                                                                                      // 820
-  var dbCursor = collection.find(                                                                                     // 821
-    replaceTypes(cursorDescription.selector, replaceMeteorAtomWithMongo),                                             // 822
-    cursorOptions.fields, mongoOptions);                                                                              // 823
-                                                                                                                      // 824
-  return new SynchronousCursor(dbCursor, cursorDescription, options);                                                 // 825
-};                                                                                                                    // 826
-                                                                                                                      // 827
-var SynchronousCursor = function (dbCursor, cursorDescription, options) {                                             // 828
-  var self = this;                                                                                                    // 829
-  options = _.pick(options || {}, 'selfForIteration', 'useTransform');                                                // 830
-                                                                                                                      // 831
-  self._dbCursor = dbCursor;                                                                                          // 832
-  self._cursorDescription = cursorDescription;                                                                        // 833
-  // The "self" argument passed to forEach/map callbacks. If we're wrapped                                            // 834
-  // inside a user-visible Cursor, we want to provide the outer cursor!                                               // 835
-  self._selfForIteration = options.selfForIteration || self;                                                          // 836
-  if (options.useTransform && cursorDescription.options.transform) {                                                  // 837
-    self._transform = LocalCollection.wrapTransform(                                                                  // 838
-      cursorDescription.options.transform);                                                                           // 839
-  } else {                                                                                                            // 840
-    self._transform = null;                                                                                           // 841
-  }                                                                                                                   // 842
-                                                                                                                      // 843
-  // Need to specify that the callback is the first argument to nextObject,                                           // 844
-  // since otherwise when we try to call it with no args the driver will                                              // 845
-  // interpret "undefined" first arg as an options hash and crash.                                                    // 846
-  self._synchronousNextObject = Future.wrap(                                                                          // 847
-    dbCursor.nextObject.bind(dbCursor), 0);                                                                           // 848
-  self._synchronousCount = Future.wrap(dbCursor.count.bind(dbCursor));                                                // 849
-  self._visitedIds = new LocalCollection._IdMap;                                                                      // 850
-};                                                                                                                    // 851
+  var collection = self._cursorDescription.collectionName;                                                            // 772
+  return Mongo.Collection._publishCursor(self, sub, collection);                                                      // 773
+};                                                                                                                    // 774
+                                                                                                                      // 775
+// Used to guarantee that publish functions return at most one cursor per                                             // 776
+// collection. Private, because we might later have cursors that include                                              // 777
+// documents from multiple collections somehow.                                                                       // 778
+Cursor.prototype._getCollectionName = function () {                                                                   // 779
+  var self = this;                                                                                                    // 780
+  return self._cursorDescription.collectionName;                                                                      // 781
+}                                                                                                                     // 782
+                                                                                                                      // 783
+Cursor.prototype.observe = function (callbacks) {                                                                     // 784
+  var self = this;                                                                                                    // 785
+  return LocalCollection._observeFromObserveChanges(self, callbacks);                                                 // 786
+};                                                                                                                    // 787
+                                                                                                                      // 788
+Cursor.prototype.observeChanges = function (callbacks) {                                                              // 789
+  var self = this;                                                                                                    // 790
+  var ordered = LocalCollection._observeChangesCallbacksAreOrdered(callbacks);                                        // 791
+  return self._mongo._observeChanges(                                                                                 // 792
+    self._cursorDescription, ordered, callbacks);                                                                     // 793
+};                                                                                                                    // 794
+                                                                                                                      // 795
+MongoConnection.prototype._createSynchronousCursor = function(                                                        // 796
+    cursorDescription, options) {                                                                                     // 797
+  var self = this;                                                                                                    // 798
+  options = _.pick(options || {}, 'selfForIteration', 'useTransform');                                                // 799
+                                                                                                                      // 800
+  var collection = self._getCollection(cursorDescription.collectionName);                                             // 801
+  var cursorOptions = cursorDescription.options;                                                                      // 802
+  var mongoOptions = {                                                                                                // 803
+    sort: cursorOptions.sort,                                                                                         // 804
+    limit: cursorOptions.limit,                                                                                       // 805
+    skip: cursorOptions.skip                                                                                          // 806
+  };                                                                                                                  // 807
+                                                                                                                      // 808
+  // Do we want a tailable cursor (which only works on capped collections)?                                           // 809
+  if (cursorOptions.tailable) {                                                                                       // 810
+    // We want a tailable cursor...                                                                                   // 811
+    mongoOptions.tailable = true;                                                                                     // 812
+    // ... and for the server to wait a bit if any getMore has no data (rather                                        // 813
+    // than making us put the relevant sleeps in the client)...                                                       // 814
+    mongoOptions.awaitdata = true;                                                                                    // 815
+    // ... and to keep querying the server indefinitely rather than just 5 times                                      // 816
+    // if there's no more data.                                                                                       // 817
+    mongoOptions.numberOfRetries = -1;                                                                                // 818
+    // And if this is on the oplog collection and the cursor specifies a 'ts',                                        // 819
+    // then set the undocumented oplog replay flag, which does a special scan to                                      // 820
+    // find the first document (instead of creating an index on ts). This is a                                        // 821
+    // very hard-coded Mongo flag which only works on the oplog collection and                                        // 822
+    // only works with the ts field.                                                                                  // 823
+    if (cursorDescription.collectionName === OPLOG_COLLECTION &&                                                      // 824
+        cursorDescription.selector.ts) {                                                                              // 825
+      mongoOptions.oplogReplay = true;                                                                                // 826
+    }                                                                                                                 // 827
+  }                                                                                                                   // 828
+                                                                                                                      // 829
+  var dbCursor = collection.find(                                                                                     // 830
+    replaceTypes(cursorDescription.selector, replaceMeteorAtomWithMongo),                                             // 831
+    cursorOptions.fields, mongoOptions);                                                                              // 832
+                                                                                                                      // 833
+  return new SynchronousCursor(dbCursor, cursorDescription, options);                                                 // 834
+};                                                                                                                    // 835
+                                                                                                                      // 836
+var SynchronousCursor = function (dbCursor, cursorDescription, options) {                                             // 837
+  var self = this;                                                                                                    // 838
+  options = _.pick(options || {}, 'selfForIteration', 'useTransform');                                                // 839
+                                                                                                                      // 840
+  self._dbCursor = dbCursor;                                                                                          // 841
+  self._cursorDescription = cursorDescription;                                                                        // 842
+  // The "self" argument passed to forEach/map callbacks. If we're wrapped                                            // 843
+  // inside a user-visible Cursor, we want to provide the outer cursor!                                               // 844
+  self._selfForIteration = options.selfForIteration || self;                                                          // 845
+  if (options.useTransform && cursorDescription.options.transform) {                                                  // 846
+    self._transform = LocalCollection.wrapTransform(                                                                  // 847
+      cursorDescription.options.transform);                                                                           // 848
+  } else {                                                                                                            // 849
+    self._transform = null;                                                                                           // 850
+  }                                                                                                                   // 851
                                                                                                                       // 852
-_.extend(SynchronousCursor.prototype, {                                                                               // 853
-  _nextObject: function () {                                                                                          // 854
-    var self = this;                                                                                                  // 855
-                                                                                                                      // 856
-    while (true) {                                                                                                    // 857
-      var doc = self._synchronousNextObject().wait();                                                                 // 858
-                                                                                                                      // 859
-      if (!doc) return null;                                                                                          // 860
-      doc = replaceTypes(doc, replaceMongoAtomWithMeteor);                                                            // 861
-                                                                                                                      // 862
-      if (!self._cursorDescription.options.tailable && _.has(doc, '_id')) {                                           // 863
-        // Did Mongo give us duplicate documents in the same cursor? If so,                                           // 864
-        // ignore this one. (Do this before the transform, since transform might                                      // 865
-        // return some unrelated value.) We don't do this for tailable cursors,                                       // 866
-        // because we want to maintain O(1) memory usage. And if there isn't _id                                      // 867
-        // for some reason (maybe it's the oplog), then we don't do this either.                                      // 868
-        // (Be careful to do this for falsey but existing _id, though.)                                               // 869
-        if (self._visitedIds.has(doc._id)) continue;                                                                  // 870
-        self._visitedIds.set(doc._id, true);                                                                          // 871
-      }                                                                                                               // 872
-                                                                                                                      // 873
-      if (self._transform)                                                                                            // 874
-        doc = self._transform(doc);                                                                                   // 875
-                                                                                                                      // 876
-      return doc;                                                                                                     // 877
-    }                                                                                                                 // 878
-  },                                                                                                                  // 879
-                                                                                                                      // 880
-  forEach: function (callback, thisArg) {                                                                             // 881
-    var self = this;                                                                                                  // 882
-                                                                                                                      // 883
-    // Get back to the beginning.                                                                                     // 884
-    self._rewind();                                                                                                   // 885
-                                                                                                                      // 886
-    // We implement the loop ourself instead of using self._dbCursor.each,                                            // 887
-    // because "each" will call its callback outside of a fiber which makes it                                        // 888
-    // much more complex to make this function synchronous.                                                           // 889
-    var index = 0;                                                                                                    // 890
-    while (true) {                                                                                                    // 891
-      var doc = self._nextObject();                                                                                   // 892
-      if (!doc) return;                                                                                               // 893
-      callback.call(thisArg, doc, index++, self._selfForIteration);                                                   // 894
-    }                                                                                                                 // 895
-  },                                                                                                                  // 896
-                                                                                                                      // 897
-  // XXX Allow overlapping callback executions if callback yields.                                                    // 898
-  map: function (callback, thisArg) {                                                                                 // 899
-    var self = this;                                                                                                  // 900
-    var res = [];                                                                                                     // 901
-    self.forEach(function (doc, index) {                                                                              // 902
-      res.push(callback.call(thisArg, doc, index, self._selfForIteration));                                           // 903
-    });                                                                                                               // 904
-    return res;                                                                                                       // 905
-  },                                                                                                                  // 906
-                                                                                                                      // 907
-  _rewind: function () {                                                                                              // 908
+  // Need to specify that the callback is the first argument to nextObject,                                           // 853
+  // since otherwise when we try to call it with no args the driver will                                              // 854
+  // interpret "undefined" first arg as an options hash and crash.                                                    // 855
+  self._synchronousNextObject = Future.wrap(                                                                          // 856
+    dbCursor.nextObject.bind(dbCursor), 0);                                                                           // 857
+  self._synchronousCount = Future.wrap(dbCursor.count.bind(dbCursor));                                                // 858
+  self._visitedIds = new LocalCollection._IdMap;                                                                      // 859
+};                                                                                                                    // 860
+                                                                                                                      // 861
+_.extend(SynchronousCursor.prototype, {                                                                               // 862
+  _nextObject: function () {                                                                                          // 863
+    var self = this;                                                                                                  // 864
+                                                                                                                      // 865
+    while (true) {                                                                                                    // 866
+      var doc = self._synchronousNextObject().wait();                                                                 // 867
+                                                                                                                      // 868
+      if (!doc) return null;                                                                                          // 869
+      doc = replaceTypes(doc, replaceMongoAtomWithMeteor);                                                            // 870
+                                                                                                                      // 871
+      if (!self._cursorDescription.options.tailable && _.has(doc, '_id')) {                                           // 872
+        // Did Mongo give us duplicate documents in the same cursor? If so,                                           // 873
+        // ignore this one. (Do this before the transform, since transform might                                      // 874
+        // return some unrelated value.) We don't do this for tailable cursors,                                       // 875
+        // because we want to maintain O(1) memory usage. And if there isn't _id                                      // 876
+        // for some reason (maybe it's the oplog), then we don't do this either.                                      // 877
+        // (Be careful to do this for falsey but existing _id, though.)                                               // 878
+        if (self._visitedIds.has(doc._id)) continue;                                                                  // 879
+        self._visitedIds.set(doc._id, true);                                                                          // 880
+      }                                                                                                               // 881
+                                                                                                                      // 882
+      if (self._transform)                                                                                            // 883
+        doc = self._transform(doc);                                                                                   // 884
+                                                                                                                      // 885
+      return doc;                                                                                                     // 886
+    }                                                                                                                 // 887
+  },                                                                                                                  // 888
+                                                                                                                      // 889
+  forEach: function (callback, thisArg) {                                                                             // 890
+    var self = this;                                                                                                  // 891
+                                                                                                                      // 892
+    // Get back to the beginning.                                                                                     // 893
+    self._rewind();                                                                                                   // 894
+                                                                                                                      // 895
+    // We implement the loop ourself instead of using self._dbCursor.each,                                            // 896
+    // because "each" will call its callback outside of a fiber which makes it                                        // 897
+    // much more complex to make this function synchronous.                                                           // 898
+    var index = 0;                                                                                                    // 899
+    while (true) {                                                                                                    // 900
+      var doc = self._nextObject();                                                                                   // 901
+      if (!doc) return;                                                                                               // 902
+      callback.call(thisArg, doc, index++, self._selfForIteration);                                                   // 903
+    }                                                                                                                 // 904
+  },                                                                                                                  // 905
+                                                                                                                      // 906
+  // XXX Allow overlapping callback executions if callback yields.                                                    // 907
+  map: function (callback, thisArg) {                                                                                 // 908
     var self = this;                                                                                                  // 909
-                                                                                                                      // 910
-    // known to be synchronous                                                                                        // 911
-    self._dbCursor.rewind();                                                                                          // 912
-                                                                                                                      // 913
-    self._visitedIds = new LocalCollection._IdMap;                                                                    // 914
+    var res = [];                                                                                                     // 910
+    self.forEach(function (doc, index) {                                                                              // 911
+      res.push(callback.call(thisArg, doc, index, self._selfForIteration));                                           // 912
+    });                                                                                                               // 913
+    return res;                                                                                                       // 914
   },                                                                                                                  // 915
                                                                                                                       // 916
-  // Mostly usable for tailable cursors.                                                                              // 917
-  close: function () {                                                                                                // 918
-    var self = this;                                                                                                  // 919
-                                                                                                                      // 920
-    self._dbCursor.close();                                                                                           // 921
-  },                                                                                                                  // 922
-                                                                                                                      // 923
-  fetch: function () {                                                                                                // 924
-    var self = this;                                                                                                  // 925
-    return self.map(_.identity);                                                                                      // 926
-  },                                                                                                                  // 927
-                                                                                                                      // 928
-  count: function () {                                                                                                // 929
-    var self = this;                                                                                                  // 930
-    return self._synchronousCount().wait();                                                                           // 931
-  },                                                                                                                  // 932
-                                                                                                                      // 933
-  // This method is NOT wrapped in Cursor.                                                                            // 934
-  getRawObjects: function (ordered) {                                                                                 // 935
-    var self = this;                                                                                                  // 936
-    if (ordered) {                                                                                                    // 937
-      return self.fetch();                                                                                            // 938
-    } else {                                                                                                          // 939
-      var results = new LocalCollection._IdMap;                                                                       // 940
-      self.forEach(function (doc) {                                                                                   // 941
-        results.set(doc._id, doc);                                                                                    // 942
-      });                                                                                                             // 943
-      return results;                                                                                                 // 944
-    }                                                                                                                 // 945
-  }                                                                                                                   // 946
-});                                                                                                                   // 947
-                                                                                                                      // 948
-MongoConnection.prototype.tail = function (cursorDescription, docCallback) {                                          // 949
-  var self = this;                                                                                                    // 950
-  if (!cursorDescription.options.tailable)                                                                            // 951
-    throw new Error("Can only tail a tailable cursor");                                                               // 952
-                                                                                                                      // 953
-  var cursor = self._createSynchronousCursor(cursorDescription);                                                      // 954
-                                                                                                                      // 955
-  var stopped = false;                                                                                                // 956
-  var lastTS = undefined;                                                                                             // 957
-  var loop = function () {                                                                                            // 958
-    while (true) {                                                                                                    // 959
-      if (stopped)                                                                                                    // 960
-        return;                                                                                                       // 961
-      try {                                                                                                           // 962
-        var doc = cursor._nextObject();                                                                               // 963
-      } catch (err) {                                                                                                 // 964
-        // There's no good way to figure out if this was actually an error                                            // 965
-        // from Mongo. Ah well. But either way, we need to retry the cursor                                           // 966
-        // (unless the failure was because the observe got stopped).                                                  // 967
-        doc = null;                                                                                                   // 968
-      }                                                                                                               // 969
-      // Since cursor._nextObject can yield, we need to check again to see if                                         // 970
-      // we've been stopped before calling the callback.                                                              // 971
-      if (stopped)                                                                                                    // 972
-        return;                                                                                                       // 973
-      if (doc) {                                                                                                      // 974
-        // If a tailable cursor contains a "ts" field, use it to recreate the                                         // 975
-        // cursor on error. ("ts" is a standard that Mongo uses internally for                                        // 976
-        // the oplog, and there's a special flag that lets you do binary search                                       // 977
-        // on it instead of needing to use an index.)                                                                 // 978
-        lastTS = doc.ts;                                                                                              // 979
-        docCallback(doc);                                                                                             // 980
-      } else {                                                                                                        // 981
-        var newSelector = _.clone(cursorDescription.selector);                                                        // 982
-        if (lastTS) {                                                                                                 // 983
-          newSelector.ts = {$gt: lastTS};                                                                             // 984
-        }                                                                                                             // 985
-        cursor = self._createSynchronousCursor(new CursorDescription(                                                 // 986
-          cursorDescription.collectionName,                                                                           // 987
-          newSelector,                                                                                                // 988
-          cursorDescription.options));                                                                                // 989
-        // Mongo failover takes many seconds.  Retry in a bit.  (Without this                                         // 990
-        // setTimeout, we peg the CPU at 100% and never notice the actual                                             // 991
-        // failover.                                                                                                  // 992
-        Meteor.setTimeout(loop, 100);                                                                                 // 993
-        break;                                                                                                        // 994
-      }                                                                                                               // 995
-    }                                                                                                                 // 996
-  };                                                                                                                  // 997
-                                                                                                                      // 998
-  Meteor.defer(loop);                                                                                                 // 999
-                                                                                                                      // 1000
-  return {                                                                                                            // 1001
-    stop: function () {                                                                                               // 1002
-      stopped = true;                                                                                                 // 1003
-      cursor.close();                                                                                                 // 1004
+  _rewind: function () {                                                                                              // 917
+    var self = this;                                                                                                  // 918
+                                                                                                                      // 919
+    // known to be synchronous                                                                                        // 920
+    self._dbCursor.rewind();                                                                                          // 921
+                                                                                                                      // 922
+    self._visitedIds = new LocalCollection._IdMap;                                                                    // 923
+  },                                                                                                                  // 924
+                                                                                                                      // 925
+  // Mostly usable for tailable cursors.                                                                              // 926
+  close: function () {                                                                                                // 927
+    var self = this;                                                                                                  // 928
+                                                                                                                      // 929
+    self._dbCursor.close();                                                                                           // 930
+  },                                                                                                                  // 931
+                                                                                                                      // 932
+  fetch: function () {                                                                                                // 933
+    var self = this;                                                                                                  // 934
+    return self.map(_.identity);                                                                                      // 935
+  },                                                                                                                  // 936
+                                                                                                                      // 937
+  count: function () {                                                                                                // 938
+    var self = this;                                                                                                  // 939
+    return self._synchronousCount().wait();                                                                           // 940
+  },                                                                                                                  // 941
+                                                                                                                      // 942
+  // This method is NOT wrapped in Cursor.                                                                            // 943
+  getRawObjects: function (ordered) {                                                                                 // 944
+    var self = this;                                                                                                  // 945
+    if (ordered) {                                                                                                    // 946
+      return self.fetch();                                                                                            // 947
+    } else {                                                                                                          // 948
+      var results = new LocalCollection._IdMap;                                                                       // 949
+      self.forEach(function (doc) {                                                                                   // 950
+        results.set(doc._id, doc);                                                                                    // 951
+      });                                                                                                             // 952
+      return results;                                                                                                 // 953
+    }                                                                                                                 // 954
+  }                                                                                                                   // 955
+});                                                                                                                   // 956
+                                                                                                                      // 957
+MongoConnection.prototype.tail = function (cursorDescription, docCallback) {                                          // 958
+  var self = this;                                                                                                    // 959
+  if (!cursorDescription.options.tailable)                                                                            // 960
+    throw new Error("Can only tail a tailable cursor");                                                               // 961
+                                                                                                                      // 962
+  var cursor = self._createSynchronousCursor(cursorDescription);                                                      // 963
+                                                                                                                      // 964
+  var stopped = false;                                                                                                // 965
+  var lastTS = undefined;                                                                                             // 966
+  var loop = function () {                                                                                            // 967
+    while (true) {                                                                                                    // 968
+      if (stopped)                                                                                                    // 969
+        return;                                                                                                       // 970
+      try {                                                                                                           // 971
+        var doc = cursor._nextObject();                                                                               // 972
+      } catch (err) {                                                                                                 // 973
+        // There's no good way to figure out if this was actually an error                                            // 974
+        // from Mongo. Ah well. But either way, we need to retry the cursor                                           // 975
+        // (unless the failure was because the observe got stopped).                                                  // 976
+        doc = null;                                                                                                   // 977
+      }                                                                                                               // 978
+      // Since cursor._nextObject can yield, we need to check again to see if                                         // 979
+      // we've been stopped before calling the callback.                                                              // 980
+      if (stopped)                                                                                                    // 981
+        return;                                                                                                       // 982
+      if (doc) {                                                                                                      // 983
+        // If a tailable cursor contains a "ts" field, use it to recreate the                                         // 984
+        // cursor on error. ("ts" is a standard that Mongo uses internally for                                        // 985
+        // the oplog, and there's a special flag that lets you do binary search                                       // 986
+        // on it instead of needing to use an index.)                                                                 // 987
+        lastTS = doc.ts;                                                                                              // 988
+        docCallback(doc);                                                                                             // 989
+      } else {                                                                                                        // 990
+        var newSelector = _.clone(cursorDescription.selector);                                                        // 991
+        if (lastTS) {                                                                                                 // 992
+          newSelector.ts = {$gt: lastTS};                                                                             // 993
+        }                                                                                                             // 994
+        cursor = self._createSynchronousCursor(new CursorDescription(                                                 // 995
+          cursorDescription.collectionName,                                                                           // 996
+          newSelector,                                                                                                // 997
+          cursorDescription.options));                                                                                // 998
+        // Mongo failover takes many seconds.  Retry in a bit.  (Without this                                         // 999
+        // setTimeout, we peg the CPU at 100% and never notice the actual                                             // 1000
+        // failover.                                                                                                  // 1001
+        Meteor.setTimeout(loop, 100);                                                                                 // 1002
+        break;                                                                                                        // 1003
+      }                                                                                                               // 1004
     }                                                                                                                 // 1005
   };                                                                                                                  // 1006
-};                                                                                                                    // 1007
-                                                                                                                      // 1008
-MongoConnection.prototype._observeChanges = function (                                                                // 1009
-    cursorDescription, ordered, callbacks) {                                                                          // 1010
-  var self = this;                                                                                                    // 1011
-                                                                                                                      // 1012
-  if (cursorDescription.options.tailable) {                                                                           // 1013
-    return self._observeChangesTailable(cursorDescription, ordered, callbacks);                                       // 1014
-  }                                                                                                                   // 1015
-                                                                                                                      // 1016
-  // You may not filter out _id when observing changes, because the id is a core                                      // 1017
-  // part of the observeChanges API.                                                                                  // 1018
-  if (cursorDescription.options.fields &&                                                                             // 1019
-      (cursorDescription.options.fields._id === 0 ||                                                                  // 1020
-       cursorDescription.options.fields._id === false)) {                                                             // 1021
-    throw Error("You may not observe a cursor with {fields: {_id: 0}}");                                              // 1022
-  }                                                                                                                   // 1023
-                                                                                                                      // 1024
-  var observeKey = JSON.stringify(                                                                                    // 1025
-    _.extend({ordered: ordered}, cursorDescription));                                                                 // 1026
-                                                                                                                      // 1027
-  var multiplexer, observeDriver;                                                                                     // 1028
-  var firstHandle = false;                                                                                            // 1029
-                                                                                                                      // 1030
-  // Find a matching ObserveMultiplexer, or create a new one. This next block is                                      // 1031
-  // guaranteed to not yield (and it doesn't call anything that can observe a                                         // 1032
-  // new query), so no other calls to this function can interleave with it.                                           // 1033
-  Meteor._noYieldsAllowed(function () {                                                                               // 1034
-    if (_.has(self._observeMultiplexers, observeKey)) {                                                               // 1035
-      multiplexer = self._observeMultiplexers[observeKey];                                                            // 1036
-    } else {                                                                                                          // 1037
-      firstHandle = true;                                                                                             // 1038
-      // Create a new ObserveMultiplexer.                                                                             // 1039
-      multiplexer = new ObserveMultiplexer({                                                                          // 1040
-        ordered: ordered,                                                                                             // 1041
-        onStop: function () {                                                                                         // 1042
-          observeDriver.stop();                                                                                       // 1043
-          delete self._observeMultiplexers[observeKey];                                                               // 1044
-        }                                                                                                             // 1045
-      });                                                                                                             // 1046
-      self._observeMultiplexers[observeKey] = multiplexer;                                                            // 1047
-    }                                                                                                                 // 1048
-  });                                                                                                                 // 1049
-                                                                                                                      // 1050
-  var observeHandle = new ObserveHandle(multiplexer, callbacks);                                                      // 1051
-                                                                                                                      // 1052
-  if (firstHandle) {                                                                                                  // 1053
-    var matcher, sorter;                                                                                              // 1054
-    var canUseOplog = _.all([                                                                                         // 1055
-      function () {                                                                                                   // 1056
-        // At a bare minimum, using the oplog requires us to have an oplog, to                                        // 1057
-        // want unordered callbacks, and to not want a callback on the polls                                          // 1058
-        // that won't happen.                                                                                         // 1059
-        return self._oplogHandle && !ordered &&                                                                       // 1060
-          !callbacks._testOnlyPollCallback;                                                                           // 1061
-      }, function () {                                                                                                // 1062
-        // We need to be able to compile the selector. Fall back to polling for                                       // 1063
-        // some newfangled $selector that minimongo doesn't support yet.                                              // 1064
-        try {                                                                                                         // 1065
-          matcher = new Minimongo.Matcher(cursorDescription.selector);                                                // 1066
-          return true;                                                                                                // 1067
-        } catch (e) {                                                                                                 // 1068
-          // XXX make all compilation errors MinimongoError or something                                              // 1069
-          //     so that this doesn't ignore unrelated exceptions                                                     // 1070
-          return false;                                                                                               // 1071
-        }                                                                                                             // 1072
-      }, function () {                                                                                                // 1073
-        // ... and the selector itself needs to support oplog.                                                        // 1074
-        return OplogObserveDriver.cursorSupported(cursorDescription, matcher);                                        // 1075
-      }, function () {                                                                                                // 1076
-        // And we need to be able to compile the sort, if any.  eg, can't be                                          // 1077
-        // {$natural: 1}.                                                                                             // 1078
-        if (!cursorDescription.options.sort)                                                                          // 1079
-          return true;                                                                                                // 1080
-        try {                                                                                                         // 1081
-          sorter = new Minimongo.Sorter(cursorDescription.options.sort,                                               // 1082
-                                        { matcher: matcher });                                                        // 1083
-          return true;                                                                                                // 1084
-        } catch (e) {                                                                                                 // 1085
-          // XXX make all compilation errors MinimongoError or something                                              // 1086
-          //     so that this doesn't ignore unrelated exceptions                                                     // 1087
-          return false;                                                                                               // 1088
-        }                                                                                                             // 1089
-      }], function (f) { return f(); });  // invoke each function                                                     // 1090
-                                                                                                                      // 1091
-    var driverClass = canUseOplog ? OplogObserveDriver : PollingObserveDriver;                                        // 1092
-    observeDriver = new driverClass({                                                                                 // 1093
-      cursorDescription: cursorDescription,                                                                           // 1094
-      mongoHandle: self,                                                                                              // 1095
-      multiplexer: multiplexer,                                                                                       // 1096
-      ordered: ordered,                                                                                               // 1097
-      matcher: matcher,  // ignored by polling                                                                        // 1098
-      sorter: sorter,  // ignored by polling                                                                          // 1099
-      _testOnlyPollCallback: callbacks._testOnlyPollCallback                                                          // 1100
-    });                                                                                                               // 1101
-                                                                                                                      // 1102
-    // This field is only set for use in tests.                                                                       // 1103
-    multiplexer._observeDriver = observeDriver;                                                                       // 1104
-  }                                                                                                                   // 1105
-                                                                                                                      // 1106
-  // Blocks until the initial adds have been sent.                                                                    // 1107
-  multiplexer.addHandleAndSendInitialAdds(observeHandle);                                                             // 1108
-                                                                                                                      // 1109
-  return observeHandle;                                                                                               // 1110
-};                                                                                                                    // 1111
-                                                                                                                      // 1112
-// Listen for the invalidation messages that will trigger us to poll the                                              // 1113
-// database for changes. If this selector specifies specific IDs, specify them                                        // 1114
-// here, so that updates to different specific IDs don't cause us to poll.                                            // 1115
-// listenCallback is the same kind of (notification, complete) callback passed                                        // 1116
-// to InvalidationCrossbar.listen.                                                                                    // 1117
+                                                                                                                      // 1007
+  Meteor.defer(loop);                                                                                                 // 1008
+                                                                                                                      // 1009
+  return {                                                                                                            // 1010
+    stop: function () {                                                                                               // 1011
+      stopped = true;                                                                                                 // 1012
+      cursor.close();                                                                                                 // 1013
+    }                                                                                                                 // 1014
+  };                                                                                                                  // 1015
+};                                                                                                                    // 1016
+                                                                                                                      // 1017
+MongoConnection.prototype._observeChanges = function (                                                                // 1018
+    cursorDescription, ordered, callbacks) {                                                                          // 1019
+  var self = this;                                                                                                    // 1020
+                                                                                                                      // 1021
+  if (cursorDescription.options.tailable) {                                                                           // 1022
+    return self._observeChangesTailable(cursorDescription, ordered, callbacks);                                       // 1023
+  }                                                                                                                   // 1024
+                                                                                                                      // 1025
+  // You may not filter out _id when observing changes, because the id is a core                                      // 1026
+  // part of the observeChanges API.                                                                                  // 1027
+  if (cursorDescription.options.fields &&                                                                             // 1028
+      (cursorDescription.options.fields._id === 0 ||                                                                  // 1029
+       cursorDescription.options.fields._id === false)) {                                                             // 1030
+    throw Error("You may not observe a cursor with {fields: {_id: 0}}");                                              // 1031
+  }                                                                                                                   // 1032
+                                                                                                                      // 1033
+  var observeKey = JSON.stringify(                                                                                    // 1034
+    _.extend({ordered: ordered}, cursorDescription));                                                                 // 1035
+                                                                                                                      // 1036
+  var multiplexer, observeDriver;                                                                                     // 1037
+  var firstHandle = false;                                                                                            // 1038
+                                                                                                                      // 1039
+  // Find a matching ObserveMultiplexer, or create a new one. This next block is                                      // 1040
+  // guaranteed to not yield (and it doesn't call anything that can observe a                                         // 1041
+  // new query), so no other calls to this function can interleave with it.                                           // 1042
+  Meteor._noYieldsAllowed(function () {                                                                               // 1043
+    if (_.has(self._observeMultiplexers, observeKey)) {                                                               // 1044
+      multiplexer = self._observeMultiplexers[observeKey];                                                            // 1045
+    } else {                                                                                                          // 1046
+      firstHandle = true;                                                                                             // 1047
+      // Create a new ObserveMultiplexer.                                                                             // 1048
+      multiplexer = new ObserveMultiplexer({                                                                          // 1049
+        ordered: ordered,                                                                                             // 1050
+        onStop: function () {                                                                                         // 1051
+          observeDriver.stop();                                                                                       // 1052
+          delete self._observeMultiplexers[observeKey];                                                               // 1053
+        }                                                                                                             // 1054
+      });                                                                                                             // 1055
+      self._observeMultiplexers[observeKey] = multiplexer;                                                            // 1056
+    }                                                                                                                 // 1057
+  });                                                                                                                 // 1058
+                                                                                                                      // 1059
+  var observeHandle = new ObserveHandle(multiplexer, callbacks);                                                      // 1060
+                                                                                                                      // 1061
+  if (firstHandle) {                                                                                                  // 1062
+    var matcher, sorter;                                                                                              // 1063
+    var canUseOplog = _.all([                                                                                         // 1064
+      function () {                                                                                                   // 1065
+        // At a bare minimum, using the oplog requires us to have an oplog, to                                        // 1066
+        // want unordered callbacks, and to not want a callback on the polls                                          // 1067
+        // that won't happen.                                                                                         // 1068
+        return self._oplogHandle && !ordered &&                                                                       // 1069
+          !callbacks._testOnlyPollCallback;                                                                           // 1070
+      }, function () {                                                                                                // 1071
+        // We need to be able to compile the selector. Fall back to polling for                                       // 1072
+        // some newfangled $selector that minimongo doesn't support yet.                                              // 1073
+        try {                                                                                                         // 1074
+          matcher = new Minimongo.Matcher(cursorDescription.selector);                                                // 1075
+          return true;                                                                                                // 1076
+        } catch (e) {                                                                                                 // 1077
+          // XXX make all compilation errors MinimongoError or something                                              // 1078
+          //     so that this doesn't ignore unrelated exceptions                                                     // 1079
+          return false;                                                                                               // 1080
+        }                                                                                                             // 1081
+      }, function () {                                                                                                // 1082
+        // ... and the selector itself needs to support oplog.                                                        // 1083
+        return OplogObserveDriver.cursorSupported(cursorDescription, matcher);                                        // 1084
+      }, function () {                                                                                                // 1085
+        // And we need to be able to compile the sort, if any.  eg, can't be                                          // 1086
+        // {$natural: 1}.                                                                                             // 1087
+        if (!cursorDescription.options.sort)                                                                          // 1088
+          return true;                                                                                                // 1089
+        try {                                                                                                         // 1090
+          sorter = new Minimongo.Sorter(cursorDescription.options.sort,                                               // 1091
+                                        { matcher: matcher });                                                        // 1092
+          return true;                                                                                                // 1093
+        } catch (e) {                                                                                                 // 1094
+          // XXX make all compilation errors MinimongoError or something                                              // 1095
+          //     so that this doesn't ignore unrelated exceptions                                                     // 1096
+          return false;                                                                                               // 1097
+        }                                                                                                             // 1098
+      }], function (f) { return f(); });  // invoke each function                                                     // 1099
+                                                                                                                      // 1100
+    var driverClass = canUseOplog ? OplogObserveDriver : PollingObserveDriver;                                        // 1101
+    observeDriver = new driverClass({                                                                                 // 1102
+      cursorDescription: cursorDescription,                                                                           // 1103
+      mongoHandle: self,                                                                                              // 1104
+      multiplexer: multiplexer,                                                                                       // 1105
+      ordered: ordered,                                                                                               // 1106
+      matcher: matcher,  // ignored by polling                                                                        // 1107
+      sorter: sorter,  // ignored by polling                                                                          // 1108
+      _testOnlyPollCallback: callbacks._testOnlyPollCallback                                                          // 1109
+    });                                                                                                               // 1110
+                                                                                                                      // 1111
+    // This field is only set for use in tests.                                                                       // 1112
+    multiplexer._observeDriver = observeDriver;                                                                       // 1113
+  }                                                                                                                   // 1114
+                                                                                                                      // 1115
+  // Blocks until the initial adds have been sent.                                                                    // 1116
+  multiplexer.addHandleAndSendInitialAdds(observeHandle);                                                             // 1117
                                                                                                                       // 1118
-listenAll = function (cursorDescription, listenCallback) {                                                            // 1119
-  var listeners = [];                                                                                                 // 1120
-  forEachTrigger(cursorDescription, function (trigger) {                                                              // 1121
-    listeners.push(DDPServer._InvalidationCrossbar.listen(                                                            // 1122
-      trigger, listenCallback));                                                                                      // 1123
-  });                                                                                                                 // 1124
-                                                                                                                      // 1125
-  return {                                                                                                            // 1126
-    stop: function () {                                                                                               // 1127
-      _.each(listeners, function (listener) {                                                                         // 1128
-        listener.stop();                                                                                              // 1129
-      });                                                                                                             // 1130
-    }                                                                                                                 // 1131
-  };                                                                                                                  // 1132
-};                                                                                                                    // 1133
+  return observeHandle;                                                                                               // 1119
+};                                                                                                                    // 1120
+                                                                                                                      // 1121
+// Listen for the invalidation messages that will trigger us to poll the                                              // 1122
+// database for changes. If this selector specifies specific IDs, specify them                                        // 1123
+// here, so that updates to different specific IDs don't cause us to poll.                                            // 1124
+// listenCallback is the same kind of (notification, complete) callback passed                                        // 1125
+// to InvalidationCrossbar.listen.                                                                                    // 1126
+                                                                                                                      // 1127
+listenAll = function (cursorDescription, listenCallback) {                                                            // 1128
+  var listeners = [];                                                                                                 // 1129
+  forEachTrigger(cursorDescription, function (trigger) {                                                              // 1130
+    listeners.push(DDPServer._InvalidationCrossbar.listen(                                                            // 1131
+      trigger, listenCallback));                                                                                      // 1132
+  });                                                                                                                 // 1133
                                                                                                                       // 1134
-forEachTrigger = function (cursorDescription, triggerCallback) {                                                      // 1135
-  var key = {collection: cursorDescription.collectionName};                                                           // 1136
-  var specificIds = LocalCollection._idsMatchedBySelector(                                                            // 1137
-    cursorDescription.selector);                                                                                      // 1138
-  if (specificIds) {                                                                                                  // 1139
-    _.each(specificIds, function (id) {                                                                               // 1140
-      triggerCallback(_.extend({id: id}, key));                                                                       // 1141
-    });                                                                                                               // 1142
-    triggerCallback(_.extend({dropCollection: true, id: null}, key));                                                 // 1143
-  } else {                                                                                                            // 1144
-    triggerCallback(key);                                                                                             // 1145
-  }                                                                                                                   // 1146
-};                                                                                                                    // 1147
-                                                                                                                      // 1148
-// observeChanges for tailable cursors on capped collections.                                                         // 1149
-//                                                                                                                    // 1150
-// Some differences from normal cursors:                                                                              // 1151
-//   - Will never produce anything other than 'added' or 'addedBefore'. If you                                        // 1152
-//     do update a document that has already been produced, this will not notice                                      // 1153
-//     it.                                                                                                            // 1154
-//   - If you disconnect and reconnect from Mongo, it will essentially restart                                        // 1155
-//     the query, which will lead to duplicate results. This is pretty bad,                                           // 1156
-//     but if you include a field called 'ts' which is inserted as                                                    // 1157
-//     new MongoInternals.MongoTimestamp(0, 0) (which is initialized to the                                           // 1158
-//     current Mongo-style timestamp), we'll be able to find the place to                                             // 1159
-//     restart properly. (This field is specifically understood by Mongo with an                                      // 1160
-//     optimization which allows it to find the right place to start without                                          // 1161
-//     an index on ts. It's how the oplog works.)                                                                     // 1162
-//   - No callbacks are triggered synchronously with the call (there's no                                             // 1163
-//     differentiation between "initial data" and "later changes"; everything                                         // 1164
-//     that matches the query gets sent asynchronously).                                                              // 1165
-//   - De-duplication is not implemented.                                                                             // 1166
-//   - Does not yet interact with the write fence. Probably, this should work by                                      // 1167
-//     ignoring removes (which don't work on capped collections) and updates                                          // 1168
-//     (which don't affect tailable cursors), and just keeping track of the ID                                        // 1169
-//     of the inserted object, and closing the write fence once you get to that                                       // 1170
-//     ID (or timestamp?).  This doesn't work well if the document doesn't match                                      // 1171
-//     the query, though.  On the other hand, the write fence can close                                               // 1172
-//     immediately if it does not match the query. So if we trust minimongo                                           // 1173
-//     enough to accurately evaluate the query against the write fence, we                                            // 1174
-//     should be able to do this...  Of course, minimongo doesn't even support                                        // 1175
-//     Mongo Timestamps yet.                                                                                          // 1176
-MongoConnection.prototype._observeChangesTailable = function (                                                        // 1177
-    cursorDescription, ordered, callbacks) {                                                                          // 1178
-  var self = this;                                                                                                    // 1179
-                                                                                                                      // 1180
-  // Tailable cursors only ever call added/addedBefore callbacks, so it's an                                          // 1181
-  // error if you didn't provide them.                                                                                // 1182
-  if ((ordered && !callbacks.addedBefore) ||                                                                          // 1183
-      (!ordered && !callbacks.added)) {                                                                               // 1184
-    throw new Error("Can't observe an " + (ordered ? "ordered" : "unordered")                                         // 1185
-                    + " tailable cursor without a "                                                                   // 1186
-                    + (ordered ? "addedBefore" : "added") + " callback");                                             // 1187
-  }                                                                                                                   // 1188
+  return {                                                                                                            // 1135
+    stop: function () {                                                                                               // 1136
+      _.each(listeners, function (listener) {                                                                         // 1137
+        listener.stop();                                                                                              // 1138
+      });                                                                                                             // 1139
+    }                                                                                                                 // 1140
+  };                                                                                                                  // 1141
+};                                                                                                                    // 1142
+                                                                                                                      // 1143
+forEachTrigger = function (cursorDescription, triggerCallback) {                                                      // 1144
+  var key = {collection: cursorDescription.collectionName};                                                           // 1145
+  var specificIds = LocalCollection._idsMatchedBySelector(                                                            // 1146
+    cursorDescription.selector);                                                                                      // 1147
+  if (specificIds) {                                                                                                  // 1148
+    _.each(specificIds, function (id) {                                                                               // 1149
+      triggerCallback(_.extend({id: id}, key));                                                                       // 1150
+    });                                                                                                               // 1151
+    triggerCallback(_.extend({dropCollection: true, id: null}, key));                                                 // 1152
+  } else {                                                                                                            // 1153
+    triggerCallback(key);                                                                                             // 1154
+  }                                                                                                                   // 1155
+};                                                                                                                    // 1156
+                                                                                                                      // 1157
+// observeChanges for tailable cursors on capped collections.                                                         // 1158
+//                                                                                                                    // 1159
+// Some differences from normal cursors:                                                                              // 1160
+//   - Will never produce anything other than 'added' or 'addedBefore'. If you                                        // 1161
+//     do update a document that has already been produced, this will not notice                                      // 1162
+//     it.                                                                                                            // 1163
+//   - If you disconnect and reconnect from Mongo, it will essentially restart                                        // 1164
+//     the query, which will lead to duplicate results. This is pretty bad,                                           // 1165
+//     but if you include a field called 'ts' which is inserted as                                                    // 1166
+//     new MongoInternals.MongoTimestamp(0, 0) (which is initialized to the                                           // 1167
+//     current Mongo-style timestamp), we'll be able to find the place to                                             // 1168
+//     restart properly. (This field is specifically understood by Mongo with an                                      // 1169
+//     optimization which allows it to find the right place to start without                                          // 1170
+//     an index on ts. It's how the oplog works.)                                                                     // 1171
+//   - No callbacks are triggered synchronously with the call (there's no                                             // 1172
+//     differentiation between "initial data" and "later changes"; everything                                         // 1173
+//     that matches the query gets sent asynchronously).                                                              // 1174
+//   - De-duplication is not implemented.                                                                             // 1175
+//   - Does not yet interact with the write fence. Probably, this should work by                                      // 1176
+//     ignoring removes (which don't work on capped collections) and updates                                          // 1177
+//     (which don't affect tailable cursors), and just keeping track of the ID                                        // 1178
+//     of the inserted object, and closing the write fence once you get to that                                       // 1179
+//     ID (or timestamp?).  This doesn't work well if the document doesn't match                                      // 1180
+//     the query, though.  On the other hand, the write fence can close                                               // 1181
+//     immediately if it does not match the query. So if we trust minimongo                                           // 1182
+//     enough to accurately evaluate the query against the write fence, we                                            // 1183
+//     should be able to do this...  Of course, minimongo doesn't even support                                        // 1184
+//     Mongo Timestamps yet.                                                                                          // 1185
+MongoConnection.prototype._observeChangesTailable = function (                                                        // 1186
+    cursorDescription, ordered, callbacks) {                                                                          // 1187
+  var self = this;                                                                                                    // 1188
                                                                                                                       // 1189
-  return self.tail(cursorDescription, function (doc) {                                                                // 1190
-    var id = doc._id;                                                                                                 // 1191
-    delete doc._id;                                                                                                   // 1192
-    // The ts is an implementation detail. Hide it.                                                                   // 1193
-    delete doc.ts;                                                                                                    // 1194
-    if (ordered) {                                                                                                    // 1195
-      callbacks.addedBefore(id, doc, null);                                                                           // 1196
-    } else {                                                                                                          // 1197
-      callbacks.added(id, doc);                                                                                       // 1198
-    }                                                                                                                 // 1199
-  });                                                                                                                 // 1200
-};                                                                                                                    // 1201
-                                                                                                                      // 1202
-// XXX We probably need to find a better way to expose this. Right now                                                // 1203
-// it's only used by tests, but in fact you need it in normal                                                         // 1204
-// operation to interact with capped collections (eg, Galaxy uses it).                                                // 1205
-MongoInternals.MongoTimestamp = MongoDB.Timestamp;                                                                    // 1206
-                                                                                                                      // 1207
-MongoInternals.Connection = MongoConnection;                                                                          // 1208
-MongoInternals.NpmModule = MongoDB;                                                                                   // 1209
-                                                                                                                      // 1210
+  // Tailable cursors only ever call added/addedBefore callbacks, so it's an                                          // 1190
+  // error if you didn't provide them.                                                                                // 1191
+  if ((ordered && !callbacks.addedBefore) ||                                                                          // 1192
+      (!ordered && !callbacks.added)) {                                                                               // 1193
+    throw new Error("Can't observe an " + (ordered ? "ordered" : "unordered")                                         // 1194
+                    + " tailable cursor without a "                                                                   // 1195
+                    + (ordered ? "addedBefore" : "added") + " callback");                                             // 1196
+  }                                                                                                                   // 1197
+                                                                                                                      // 1198
+  return self.tail(cursorDescription, function (doc) {                                                                // 1199
+    var id = doc._id;                                                                                                 // 1200
+    delete doc._id;                                                                                                   // 1201
+    // The ts is an implementation detail. Hide it.                                                                   // 1202
+    delete doc.ts;                                                                                                    // 1203
+    if (ordered) {                                                                                                    // 1204
+      callbacks.addedBefore(id, doc, null);                                                                           // 1205
+    } else {                                                                                                          // 1206
+      callbacks.added(id, doc);                                                                                       // 1207
+    }                                                                                                                 // 1208
+  });                                                                                                                 // 1209
+};                                                                                                                    // 1210
+                                                                                                                      // 1211
+// XXX We probably need to find a better way to expose this. Right now                                                // 1212
+// it's only used by tests, but in fact you need it in normal                                                         // 1213
+// operation to interact with capped collections (eg, Galaxy uses it).                                                // 1214
+MongoInternals.MongoTimestamp = MongoDB.Timestamp;                                                                    // 1215
+                                                                                                                      // 1216
+MongoInternals.Connection = MongoConnection;                                                                          // 1217
+MongoInternals.NpmModule = MongoDB;                                                                                   // 1218
+                                                                                                                      // 1219
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }).call(this);
@@ -4083,142 +4092,152 @@ Mongo.Collection.prototype._validatedUpdate = function(                         
     userId, selector, mutator, options) {                                                                             // 964
   var self = this;                                                                                                    // 965
                                                                                                                       // 966
-  options = options || {};                                                                                            // 967
+  check(mutator, Object);                                                                                             // 967
                                                                                                                       // 968
-  if (!LocalCollection._selectorIsIdPerhapsAsObject(selector))                                                        // 969
-    throw new Error("validated update should be of a single ID");                                                     // 970
-                                                                                                                      // 971
-  // We don't support upserts because they don't fit nicely into allow/deny                                           // 972
-  // rules.                                                                                                           // 973
-  if (options.upsert)                                                                                                 // 974
-    throw new Meteor.Error(403, "Access denied. Upserts not " +                                                       // 975
-                           "allowed in a restricted collection.");                                                    // 976
-                                                                                                                      // 977
-  // compute modified fields                                                                                          // 978
-  var fields = [];                                                                                                    // 979
-  _.each(mutator, function (params, op) {                                                                             // 980
-    if (op.charAt(0) !== '$') {                                                                                       // 981
-      throw new Meteor.Error(                                                                                         // 982
-        403, "Access denied. In a restricted collection you can only update documents, not replace them. Use a Mongo update operator, such as '$set'.");
-    } else if (!_.has(ALLOWED_UPDATE_OPERATIONS, op)) {                                                               // 984
-      throw new Meteor.Error(                                                                                         // 985
-        403, "Access denied. Operator " + op + " not allowed in a restricted collection.");                           // 986
-    } else {                                                                                                          // 987
-      _.each(_.keys(params), function (field) {                                                                       // 988
-        // treat dotted fields as if they are replacing their                                                         // 989
-        // top-level part                                                                                             // 990
-        if (field.indexOf('.') !== -1)                                                                                // 991
-          field = field.substring(0, field.indexOf('.'));                                                             // 992
-                                                                                                                      // 993
-        // record the field we are trying to change                                                                   // 994
-        if (!_.contains(fields, field))                                                                               // 995
-          fields.push(field);                                                                                         // 996
-      });                                                                                                             // 997
-    }                                                                                                                 // 998
-  });                                                                                                                 // 999
-                                                                                                                      // 1000
-  var findOptions = {transform: null};                                                                                // 1001
-  if (!self._validators.fetchAllFields) {                                                                             // 1002
-    findOptions.fields = {};                                                                                          // 1003
-    _.each(self._validators.fetch, function(fieldName) {                                                              // 1004
-      findOptions.fields[fieldName] = 1;                                                                              // 1005
-    });                                                                                                               // 1006
-  }                                                                                                                   // 1007
+  options = _.clone(options) || {};                                                                                   // 969
+                                                                                                                      // 970
+  if (!LocalCollection._selectorIsIdPerhapsAsObject(selector))                                                        // 971
+    throw new Error("validated update should be of a single ID");                                                     // 972
+                                                                                                                      // 973
+  // We don't support upserts because they don't fit nicely into allow/deny                                           // 974
+  // rules.                                                                                                           // 975
+  if (options.upsert)                                                                                                 // 976
+    throw new Meteor.Error(403, "Access denied. Upserts not " +                                                       // 977
+                           "allowed in a restricted collection.");                                                    // 978
+                                                                                                                      // 979
+  var noReplaceError = "Access denied. In a restricted collection you can only" +                                     // 980
+        " update documents, not replace them. Use a Mongo update operator, such " +                                   // 981
+        "as '$set'.";                                                                                                 // 982
+                                                                                                                      // 983
+  // compute modified fields                                                                                          // 984
+  var fields = [];                                                                                                    // 985
+  if (_.isEmpty(mutator)) {                                                                                           // 986
+    throw new Meteor.Error(403, noReplaceError);                                                                      // 987
+  }                                                                                                                   // 988
+  _.each(mutator, function (params, op) {                                                                             // 989
+    if (op.charAt(0) !== '$') {                                                                                       // 990
+      throw new Meteor.Error(403, noReplaceError);                                                                    // 991
+    } else if (!_.has(ALLOWED_UPDATE_OPERATIONS, op)) {                                                               // 992
+      throw new Meteor.Error(                                                                                         // 993
+        403, "Access denied. Operator " + op + " not allowed in a restricted collection.");                           // 994
+    } else {                                                                                                          // 995
+      _.each(_.keys(params), function (field) {                                                                       // 996
+        // treat dotted fields as if they are replacing their                                                         // 997
+        // top-level part                                                                                             // 998
+        if (field.indexOf('.') !== -1)                                                                                // 999
+          field = field.substring(0, field.indexOf('.'));                                                             // 1000
+                                                                                                                      // 1001
+        // record the field we are trying to change                                                                   // 1002
+        if (!_.contains(fields, field))                                                                               // 1003
+          fields.push(field);                                                                                         // 1004
+      });                                                                                                             // 1005
+    }                                                                                                                 // 1006
+  });                                                                                                                 // 1007
                                                                                                                       // 1008
-  var doc = self._collection.findOne(selector, findOptions);                                                          // 1009
-  if (!doc)  // none satisfied!                                                                                       // 1010
-    return 0;                                                                                                         // 1011
-                                                                                                                      // 1012
-  var factoriedDoc;                                                                                                   // 1013
-                                                                                                                      // 1014
-  // call user validators.                                                                                            // 1015
-  // Any deny returns true means denied.                                                                              // 1016
-  if (_.any(self._validators.update.deny, function(validator) {                                                       // 1017
-    if (!factoriedDoc)                                                                                                // 1018
-      factoriedDoc = transformDoc(validator, doc);                                                                    // 1019
-    return validator(userId,                                                                                          // 1020
-                     factoriedDoc,                                                                                    // 1021
-                     fields,                                                                                          // 1022
-                     mutator);                                                                                        // 1023
-  })) {                                                                                                               // 1024
-    throw new Meteor.Error(403, "Access denied");                                                                     // 1025
-  }                                                                                                                   // 1026
-  // Any allow returns true means proceed. Throw error if they all fail.                                              // 1027
-  if (_.all(self._validators.update.allow, function(validator) {                                                      // 1028
-    if (!factoriedDoc)                                                                                                // 1029
-      factoriedDoc = transformDoc(validator, doc);                                                                    // 1030
-    return !validator(userId,                                                                                         // 1031
-                      factoriedDoc,                                                                                   // 1032
-                      fields,                                                                                         // 1033
-                      mutator);                                                                                       // 1034
-  })) {                                                                                                               // 1035
-    throw new Meteor.Error(403, "Access denied");                                                                     // 1036
-  }                                                                                                                   // 1037
-                                                                                                                      // 1038
-  // Back when we supported arbitrary client-provided selectors, we actually                                          // 1039
-  // rewrote the selector to include an _id clause before passing to Mongo to                                         // 1040
-  // avoid races, but since selector is guaranteed to already just be an ID, we                                       // 1041
-  // don't have to any more.                                                                                          // 1042
-                                                                                                                      // 1043
-  return self._collection.update.call(                                                                                // 1044
-    self._collection, selector, mutator, options);                                                                    // 1045
-};                                                                                                                    // 1046
-                                                                                                                      // 1047
-// Only allow these operations in validated updates. Specifically                                                     // 1048
-// whitelist operations, rather than blacklist, so new complex                                                        // 1049
-// operations that are added aren't automatically allowed. A complex                                                  // 1050
-// operation is one that does more than just modify its target                                                        // 1051
-// field. For now this contains all update operations except '$rename'.                                               // 1052
-// http://docs.mongodb.org/manual/reference/operators/#update                                                         // 1053
-var ALLOWED_UPDATE_OPERATIONS = {                                                                                     // 1054
-  $inc:1, $set:1, $unset:1, $addToSet:1, $pop:1, $pullAll:1, $pull:1,                                                 // 1055
-  $pushAll:1, $push:1, $bit:1                                                                                         // 1056
-};                                                                                                                    // 1057
-                                                                                                                      // 1058
-// Simulate a mongo `remove` operation while validating access control                                                // 1059
-// rules. See #ValidatedChange                                                                                        // 1060
-Mongo.Collection.prototype._validatedRemove = function(userId, selector) {                                            // 1061
-  var self = this;                                                                                                    // 1062
-                                                                                                                      // 1063
-  var findOptions = {transform: null};                                                                                // 1064
-  if (!self._validators.fetchAllFields) {                                                                             // 1065
-    findOptions.fields = {};                                                                                          // 1066
-    _.each(self._validators.fetch, function(fieldName) {                                                              // 1067
-      findOptions.fields[fieldName] = 1;                                                                              // 1068
-    });                                                                                                               // 1069
-  }                                                                                                                   // 1070
-                                                                                                                      // 1071
-  var doc = self._collection.findOne(selector, findOptions);                                                          // 1072
-  if (!doc)                                                                                                           // 1073
-    return 0;                                                                                                         // 1074
-                                                                                                                      // 1075
-  // call user validators.                                                                                            // 1076
-  // Any deny returns true means denied.                                                                              // 1077
-  if (_.any(self._validators.remove.deny, function(validator) {                                                       // 1078
-    return validator(userId, transformDoc(validator, doc));                                                           // 1079
-  })) {                                                                                                               // 1080
-    throw new Meteor.Error(403, "Access denied");                                                                     // 1081
-  }                                                                                                                   // 1082
-  // Any allow returns true means proceed. Throw error if they all fail.                                              // 1083
-  if (_.all(self._validators.remove.allow, function(validator) {                                                      // 1084
-    return !validator(userId, transformDoc(validator, doc));                                                          // 1085
-  })) {                                                                                                               // 1086
-    throw new Meteor.Error(403, "Access denied");                                                                     // 1087
-  }                                                                                                                   // 1088
-                                                                                                                      // 1089
-  // Back when we supported arbitrary client-provided selectors, we actually                                          // 1090
-  // rewrote the selector to {_id: {$in: [ids that we found]}} before passing to                                      // 1091
-  // Mongo to avoid races, but since selector is guaranteed to already just be                                        // 1092
-  // an ID, we don't have to any more.                                                                                // 1093
-                                                                                                                      // 1094
-  return self._collection.remove.call(self._collection, selector);                                                    // 1095
-};                                                                                                                    // 1096
-                                                                                                                      // 1097
-/**                                                                                                                   // 1098
- * @deprecated in 0.9.1                                                                                               // 1099
- */                                                                                                                   // 1100
-Meteor.Collection = Mongo.Collection;                                                                                 // 1101
-                                                                                                                      // 1102
+  var findOptions = {transform: null};                                                                                // 1009
+  if (!self._validators.fetchAllFields) {                                                                             // 1010
+    findOptions.fields = {};                                                                                          // 1011
+    _.each(self._validators.fetch, function(fieldName) {                                                              // 1012
+      findOptions.fields[fieldName] = 1;                                                                              // 1013
+    });                                                                                                               // 1014
+  }                                                                                                                   // 1015
+                                                                                                                      // 1016
+  var doc = self._collection.findOne(selector, findOptions);                                                          // 1017
+  if (!doc)  // none satisfied!                                                                                       // 1018
+    return 0;                                                                                                         // 1019
+                                                                                                                      // 1020
+  var factoriedDoc;                                                                                                   // 1021
+                                                                                                                      // 1022
+  // call user validators.                                                                                            // 1023
+  // Any deny returns true means denied.                                                                              // 1024
+  if (_.any(self._validators.update.deny, function(validator) {                                                       // 1025
+    if (!factoriedDoc)                                                                                                // 1026
+      factoriedDoc = transformDoc(validator, doc);                                                                    // 1027
+    return validator(userId,                                                                                          // 1028
+                     factoriedDoc,                                                                                    // 1029
+                     fields,                                                                                          // 1030
+                     mutator);                                                                                        // 1031
+  })) {                                                                                                               // 1032
+    throw new Meteor.Error(403, "Access denied");                                                                     // 1033
+  }                                                                                                                   // 1034
+  // Any allow returns true means proceed. Throw error if they all fail.                                              // 1035
+  if (_.all(self._validators.update.allow, function(validator) {                                                      // 1036
+    if (!factoriedDoc)                                                                                                // 1037
+      factoriedDoc = transformDoc(validator, doc);                                                                    // 1038
+    return !validator(userId,                                                                                         // 1039
+                      factoriedDoc,                                                                                   // 1040
+                      fields,                                                                                         // 1041
+                      mutator);                                                                                       // 1042
+  })) {                                                                                                               // 1043
+    throw new Meteor.Error(403, "Access denied");                                                                     // 1044
+  }                                                                                                                   // 1045
+                                                                                                                      // 1046
+  options._forbidReplace = true;                                                                                      // 1047
+                                                                                                                      // 1048
+  // Back when we supported arbitrary client-provided selectors, we actually                                          // 1049
+  // rewrote the selector to include an _id clause before passing to Mongo to                                         // 1050
+  // avoid races, but since selector is guaranteed to already just be an ID, we                                       // 1051
+  // don't have to any more.                                                                                          // 1052
+                                                                                                                      // 1053
+  return self._collection.update.call(                                                                                // 1054
+    self._collection, selector, mutator, options);                                                                    // 1055
+};                                                                                                                    // 1056
+                                                                                                                      // 1057
+// Only allow these operations in validated updates. Specifically                                                     // 1058
+// whitelist operations, rather than blacklist, so new complex                                                        // 1059
+// operations that are added aren't automatically allowed. A complex                                                  // 1060
+// operation is one that does more than just modify its target                                                        // 1061
+// field. For now this contains all update operations except '$rename'.                                               // 1062
+// http://docs.mongodb.org/manual/reference/operators/#update                                                         // 1063
+var ALLOWED_UPDATE_OPERATIONS = {                                                                                     // 1064
+  $inc:1, $set:1, $unset:1, $addToSet:1, $pop:1, $pullAll:1, $pull:1,                                                 // 1065
+  $pushAll:1, $push:1, $bit:1                                                                                         // 1066
+};                                                                                                                    // 1067
+                                                                                                                      // 1068
+// Simulate a mongo `remove` operation while validating access control                                                // 1069
+// rules. See #ValidatedChange                                                                                        // 1070
+Mongo.Collection.prototype._validatedRemove = function(userId, selector) {                                            // 1071
+  var self = this;                                                                                                    // 1072
+                                                                                                                      // 1073
+  var findOptions = {transform: null};                                                                                // 1074
+  if (!self._validators.fetchAllFields) {                                                                             // 1075
+    findOptions.fields = {};                                                                                          // 1076
+    _.each(self._validators.fetch, function(fieldName) {                                                              // 1077
+      findOptions.fields[fieldName] = 1;                                                                              // 1078
+    });                                                                                                               // 1079
+  }                                                                                                                   // 1080
+                                                                                                                      // 1081
+  var doc = self._collection.findOne(selector, findOptions);                                                          // 1082
+  if (!doc)                                                                                                           // 1083
+    return 0;                                                                                                         // 1084
+                                                                                                                      // 1085
+  // call user validators.                                                                                            // 1086
+  // Any deny returns true means denied.                                                                              // 1087
+  if (_.any(self._validators.remove.deny, function(validator) {                                                       // 1088
+    return validator(userId, transformDoc(validator, doc));                                                           // 1089
+  })) {                                                                                                               // 1090
+    throw new Meteor.Error(403, "Access denied");                                                                     // 1091
+  }                                                                                                                   // 1092
+  // Any allow returns true means proceed. Throw error if they all fail.                                              // 1093
+  if (_.all(self._validators.remove.allow, function(validator) {                                                      // 1094
+    return !validator(userId, transformDoc(validator, doc));                                                          // 1095
+  })) {                                                                                                               // 1096
+    throw new Meteor.Error(403, "Access denied");                                                                     // 1097
+  }                                                                                                                   // 1098
+                                                                                                                      // 1099
+  // Back when we supported arbitrary client-provided selectors, we actually                                          // 1100
+  // rewrote the selector to {_id: {$in: [ids that we found]}} before passing to                                      // 1101
+  // Mongo to avoid races, but since selector is guaranteed to already just be                                        // 1102
+  // an ID, we don't have to any more.                                                                                // 1103
+                                                                                                                      // 1104
+  return self._collection.remove.call(self._collection, selector);                                                    // 1105
+};                                                                                                                    // 1106
+                                                                                                                      // 1107
+/**                                                                                                                   // 1108
+ * @deprecated in 0.9.1                                                                                               // 1109
+ */                                                                                                                   // 1110
+Meteor.Collection = Mongo.Collection;                                                                                 // 1111
+                                                                                                                      // 1112
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }).call(this);
