@@ -2,7 +2,13 @@
 Template.viewProfile.helpers({
   //this._id is the ID of the current frient profile being displayed
   cards: function(){
-     return Cards.find({friendId: this._id});
+    var cards = Cards.find({friendId: this._id}).fetch();
+    if(cards.length > 1) {
+      return cards;
+    } else {
+      //ensures empty card array isn't created - spacebars #if relies on this too
+      return false;
+    }
   },
 
   profileMessage: function(){
