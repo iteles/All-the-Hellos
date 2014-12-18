@@ -18,8 +18,15 @@ Router.route('/view-profile/:_id',
   {name: 'viewProfile',
     //fetches only the relevant cards only when view-profile route is hit
     //ZZZ - not sure this is the most efficient thing to do given the repetition of subscribing in the cards view as well as the friends view...
-    waitOn: function() {Meteor.subscribe('cards', this.params._id);},
+    waitOn: function() {Meteor.subscribe('cardsByFriend', this.params._id);},
     //provides the data context for this route - i.e. the specific friend requested in the _id
     data: function() {return Friends.findOne({_id: this.params._id});}
+  }
+);
+
+Router.route('/view-card/:_id',
+  {name: 'viewCard',
+  waitOn: function() {Meteor.subscribe('cardsById', this.params._id);},
+  data: function(){return Cards.findOne({_id: this.params._id});}
   }
 );

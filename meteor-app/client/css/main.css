@@ -224,6 +224,13 @@ NAVIGATION (at bottom of page) - used to be #footer
 }
 
 /******************
+VIEW CARD
+******************/
+#card-photo img {
+	max-width: 20%;
+}
+
+/******************
 COLOURS
 ******************/
 

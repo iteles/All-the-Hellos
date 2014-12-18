@@ -3,7 +3,11 @@
     return Friends.find();
   });
 
-  Meteor.publish('cards', function(friendId){
+  Meteor.publish('cardsById', function(id){
+    return Cards.find({_id: id});
+  });
+
+  Meteor.publish('cardsByFriend', function(friendId){
     //checks friendId is a String, as recommended by Discover Meteor book
     check(friendId, String);
 

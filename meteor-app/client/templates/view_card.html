@@ -1,0 +1,26 @@
+<template name="viewCard">
+
+    <section id="header">
+      <!--ZZZ - placeholder title-->
+    <h1> PAGE TITLE </h1>
+  </section>
+
+  <!-- Main body of page -->
+  <section id="content">
+    <div id="card-photo">
+      <img src="../{{url}}" title="Card photo">
+
+    </div>
+
+    <div id=people-display>
+      <h2>Sent to:</h2>
+
+      <ul>
+        {{#each friendId}}
+          {{ > peopleDisplay friendId}}
+        {{/each}}
+      </ul>
+    </div>
+  </section>
+
+</template>
