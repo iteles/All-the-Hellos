@@ -8,6 +8,12 @@ and not to the container div
 - 0.3em padding between lines (either with padding or by setting line-height)*/
 
 /*For titles in the header of all pages (except homepage)*/
+.debug{
+	font-size: 4em;
+	color: red;
+	font-weight: bold;
+}
+
 h1{
 	text-align: center;
 	color: #00CED1;
@@ -227,8 +233,22 @@ NAVIGATION (at bottom of page) - used to be #footer
 VIEW CARD
 ******************/
 #card-photo img {
-	max-width: 20%;
+	max-width: 10em;
 }
+
+/*#plus-sign {
+	height:2em;
+	width: 2em;
+	border-radius: 100%;
+	background: #00CED1;
+	float: right;
+}
+
+#plus-sign p{
+	color: #ffffff;
+	font-size: 1.5em;
+	padding: auto 0.25em auto;
+}*/
 
 /******************
 COLOURS

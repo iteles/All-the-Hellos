@@ -1,11 +1,10 @@
 <template name="peopleDisplay">
+  <!--friend is actually a function which requires an argument to be passed in - here we're passing on 'this' as the data context-->
+  <!--it returns an array which has to be iterated over - we do this using #each-->
+  {{#each friend this}}
   <li>
-    I am now the peopleDisplay template.
-
-    People display template: {{friendId}}
-
-    Friend: {{friend}}
-    <img src="{{photo}}"><a href="{{pathFor 'viewProfile'}}">{{firstName}} {{lastName}}</a>
+    <img src="../{{photo}}"><a href="{{pathFor 'viewProfile'}}">{{firstName}} {{lastName}}</a>
     <!-- {{date}} -->
   </li>
+  {{/each}}
 </template>

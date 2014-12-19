@@ -14,10 +14,9 @@
 
     <div id=people-display>
       <h2>Sent to:</h2>
-
-      <ul>
+      <ul id="list-of-friends">
         {{#each friendId}}
-          {{ > peopleDisplay friendId}}
+          {{ > peopleDisplay this}}
         {{/each}}
       </ul>
     </div>
