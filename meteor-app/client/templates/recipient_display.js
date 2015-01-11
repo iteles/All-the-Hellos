@@ -1,4 +1,4 @@
-Template.peopleDisplay.helpers({
+Template.recipientDisplay.helpers({
   //'f' here is the data context passed in in the template in {{#each friend this}}
   //where this is the data context - in this case it's the friendId property of the card
   friend: function(f){
