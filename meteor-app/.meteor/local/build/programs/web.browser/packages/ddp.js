@@ -43,9 +43,13 @@ var DDP, LivedataTest, SockJS, toSockjsUrl, toWebsocketUrl, Heartbeat, SUPPORTED
 //                                                                                                                //
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                                                                                                                   //
-DDP = {};                                                                                                         // 1
-LivedataTest = {};                                                                                                // 2
-                                                                                                                  // 3
+/**                                                                                                               // 1
+ * @namespace DDP                                                                                                 // 2
+ * @summary The namespace for DDP-related methods.                                                                // 3
+ */                                                                                                               // 4
+DDP = {};                                                                                                         // 5
+LivedataTest = {};                                                                                                // 6
+                                                                                                                  // 7
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }).call(this);
@@ -3186,145 +3190,146 @@ MethodInvocation = function (options) {                                         
    * @name  isSimulation                                                                                          // 29
    * @memberOf MethodInvocation                                                                                   // 30
    * @instance                                                                                                    // 31
-   */                                                                                                             // 32
-  this.isSimulation = options.isSimulation;                                                                       // 33
-                                                                                                                  // 34
-  // call this function to allow other method invocations (from the                                               // 35
-  // same client) to continue running without waiting for this one to                                             // 36
-  // complete.                                                                                                    // 37
-  this._unblock = options.unblock || function () {};                                                              // 38
-  this._calledUnblock = false;                                                                                    // 39
-                                                                                                                  // 40
-  // current user id                                                                                              // 41
-                                                                                                                  // 42
-  /**                                                                                                             // 43
-   * @summary The id of the user that made this method call, or `null` if no user was logged in.                  // 44
-   * @locus Anywhere                                                                                              // 45
-   * @name  userId                                                                                                // 46
-   * @memberOf MethodInvocation                                                                                   // 47
-   * @instance                                                                                                    // 48
-   */                                                                                                             // 49
-  this.userId = options.userId;                                                                                   // 50
-                                                                                                                  // 51
-  // sets current user id in all appropriate server contexts and                                                  // 52
-  // reruns subscriptions                                                                                         // 53
-  this._setUserId = options.setUserId || function () {};                                                          // 54
-                                                                                                                  // 55
-  // On the server, the connection this method call came in on.                                                   // 56
-                                                                                                                  // 57
-  /**                                                                                                             // 58
+   * @type {Boolean}                                                                                              // 32
+   */                                                                                                             // 33
+  this.isSimulation = options.isSimulation;                                                                       // 34
+                                                                                                                  // 35
+  // call this function to allow other method invocations (from the                                               // 36
+  // same client) to continue running without waiting for this one to                                             // 37
+  // complete.                                                                                                    // 38
+  this._unblock = options.unblock || function () {};                                                              // 39
+  this._calledUnblock = false;                                                                                    // 40
+                                                                                                                  // 41
+  // current user id                                                                                              // 42
+                                                                                                                  // 43
+  /**                                                                                                             // 44
+   * @summary The id of the user that made this method call, or `null` if no user was logged in.                  // 45
+   * @locus Anywhere                                                                                              // 46
+   * @name  userId                                                                                                // 47
+   * @memberOf MethodInvocation                                                                                   // 48
+   * @instance                                                                                                    // 49
+   */                                                                                                             // 50
+  this.userId = options.userId;                                                                                   // 51
+                                                                                                                  // 52
+  // sets current user id in all appropriate server contexts and                                                  // 53
+  // reruns subscriptions                                                                                         // 54
+  this._setUserId = options.setUserId || function () {};                                                          // 55
+                                                                                                                  // 56
+  // On the server, the connection this method call came in on.                                                   // 57
+                                                                                                                  // 58
+  /**                                                                                                             // 59
    * @summary Access inside a method invocation. The [connection](#meteor_onconnection) that this method was received on. `null` if the method is not associated with a connection, eg. a server initiated method call.
-   * @locus Server                                                                                                // 60
-   * @name  connection                                                                                            // 61
-   * @memberOf MethodInvocation                                                                                   // 62
-   * @instance                                                                                                    // 63
-   */                                                                                                             // 64
-  this.connection = options.connection;                                                                           // 65
-                                                                                                                  // 66
-  // The seed for randomStream value generation                                                                   // 67
-  this.randomSeed = options.randomSeed;                                                                           // 68
-                                                                                                                  // 69
-  // This is set by RandomStream.get; and holds the random stream state                                           // 70
-  this.randomStream = null;                                                                                       // 71
-};                                                                                                                // 72
-                                                                                                                  // 73
-_.extend(MethodInvocation.prototype, {                                                                            // 74
-  /**                                                                                                             // 75
+   * @locus Server                                                                                                // 61
+   * @name  connection                                                                                            // 62
+   * @memberOf MethodInvocation                                                                                   // 63
+   * @instance                                                                                                    // 64
+   */                                                                                                             // 65
+  this.connection = options.connection;                                                                           // 66
+                                                                                                                  // 67
+  // The seed for randomStream value generation                                                                   // 68
+  this.randomSeed = options.randomSeed;                                                                           // 69
+                                                                                                                  // 70
+  // This is set by RandomStream.get; and holds the random stream state                                           // 71
+  this.randomStream = null;                                                                                       // 72
+};                                                                                                                // 73
+                                                                                                                  // 74
+_.extend(MethodInvocation.prototype, {                                                                            // 75
+  /**                                                                                                             // 76
    * @summary Call inside a method invocation.  Allow subsequent method from this client to begin running in a new fiber.
-   * @locus Server                                                                                                // 77
-   * @memberOf MethodInvocation                                                                                   // 78
-   * @instance                                                                                                    // 79
-   */                                                                                                             // 80
-  unblock: function () {                                                                                          // 81
-    var self = this;                                                                                              // 82
-    self._calledUnblock = true;                                                                                   // 83
-    self._unblock();                                                                                              // 84
-  },                                                                                                              // 85
-                                                                                                                  // 86
-  /**                                                                                                             // 87
-   * @summary Set the logged in user.                                                                             // 88
-   * @locus Server                                                                                                // 89
-   * @memberOf MethodInvocation                                                                                   // 90
-   * @instance                                                                                                    // 91
-   * @param {String | null} userId The value that should be returned by `userId` on this connection.              // 92
-   */                                                                                                             // 93
-  setUserId: function(userId) {                                                                                   // 94
-    var self = this;                                                                                              // 95
-    if (self._calledUnblock)                                                                                      // 96
-      throw new Error("Can't call setUserId in a method after calling unblock");                                  // 97
-    self.userId = userId;                                                                                         // 98
-    self._setUserId(userId);                                                                                      // 99
-  }                                                                                                               // 100
-});                                                                                                               // 101
-                                                                                                                  // 102
-parseDDP = function (stringMessage) {                                                                             // 103
-  try {                                                                                                           // 104
-    var msg = JSON.parse(stringMessage);                                                                          // 105
-  } catch (e) {                                                                                                   // 106
-    Meteor._debug("Discarding message with invalid JSON", stringMessage);                                         // 107
-    return null;                                                                                                  // 108
-  }                                                                                                               // 109
-  // DDP messages must be objects.                                                                                // 110
-  if (msg === null || typeof msg !== 'object') {                                                                  // 111
-    Meteor._debug("Discarding non-object DDP message", stringMessage);                                            // 112
-    return null;                                                                                                  // 113
-  }                                                                                                               // 114
-                                                                                                                  // 115
-  // massage msg to get it into "abstract ddp" rather than "wire ddp" format.                                     // 116
-                                                                                                                  // 117
-  // switch between "cleared" rep of unsetting fields and "undefined"                                             // 118
-  // rep of same                                                                                                  // 119
-  if (_.has(msg, 'cleared')) {                                                                                    // 120
-    if (!_.has(msg, 'fields'))                                                                                    // 121
-      msg.fields = {};                                                                                            // 122
-    _.each(msg.cleared, function (clearKey) {                                                                     // 123
-      msg.fields[clearKey] = undefined;                                                                           // 124
-    });                                                                                                           // 125
-    delete msg.cleared;                                                                                           // 126
-  }                                                                                                               // 127
-                                                                                                                  // 128
-  _.each(['fields', 'params', 'result'], function (field) {                                                       // 129
-    if (_.has(msg, field))                                                                                        // 130
-      msg[field] = EJSON._adjustTypesFromJSONValue(msg[field]);                                                   // 131
-  });                                                                                                             // 132
-                                                                                                                  // 133
-  return msg;                                                                                                     // 134
-};                                                                                                                // 135
-                                                                                                                  // 136
-stringifyDDP = function (msg) {                                                                                   // 137
-  var copy = EJSON.clone(msg);                                                                                    // 138
-  // swizzle 'changed' messages from 'fields undefined' rep to 'fields                                            // 139
-  // and cleared' rep                                                                                             // 140
-  if (_.has(msg, 'fields')) {                                                                                     // 141
-    var cleared = [];                                                                                             // 142
-    _.each(msg.fields, function (value, key) {                                                                    // 143
-      if (value === undefined) {                                                                                  // 144
-        cleared.push(key);                                                                                        // 145
-        delete copy.fields[key];                                                                                  // 146
-      }                                                                                                           // 147
-    });                                                                                                           // 148
-    if (!_.isEmpty(cleared))                                                                                      // 149
-      copy.cleared = cleared;                                                                                     // 150
-    if (_.isEmpty(copy.fields))                                                                                   // 151
-      delete copy.fields;                                                                                         // 152
-  }                                                                                                               // 153
-  // adjust types to basic                                                                                        // 154
-  _.each(['fields', 'params', 'result'], function (field) {                                                       // 155
-    if (_.has(copy, field))                                                                                       // 156
-      copy[field] = EJSON._adjustTypesToJSONValue(copy[field]);                                                   // 157
-  });                                                                                                             // 158
-  if (msg.id && typeof msg.id !== 'string') {                                                                     // 159
-    throw new Error("Message id is not a string");                                                                // 160
-  }                                                                                                               // 161
-  return JSON.stringify(copy);                                                                                    // 162
-};                                                                                                                // 163
-                                                                                                                  // 164
-// This is private but it's used in a few places. accounts-base uses                                              // 165
-// it to get the current user. accounts-password uses it to stash SRP                                             // 166
-// state in the DDP session. Meteor.setTimeout and friends clear                                                  // 167
-// it. We can probably find a better way to factor this.                                                          // 168
-DDP._CurrentInvocation = new Meteor.EnvironmentVariable;                                                          // 169
-                                                                                                                  // 170
+   * @locus Server                                                                                                // 78
+   * @memberOf MethodInvocation                                                                                   // 79
+   * @instance                                                                                                    // 80
+   */                                                                                                             // 81
+  unblock: function () {                                                                                          // 82
+    var self = this;                                                                                              // 83
+    self._calledUnblock = true;                                                                                   // 84
+    self._unblock();                                                                                              // 85
+  },                                                                                                              // 86
+                                                                                                                  // 87
+  /**                                                                                                             // 88
+   * @summary Set the logged in user.                                                                             // 89
+   * @locus Server                                                                                                // 90
+   * @memberOf MethodInvocation                                                                                   // 91
+   * @instance                                                                                                    // 92
+   * @param {String | null} userId The value that should be returned by `userId` on this connection.              // 93
+   */                                                                                                             // 94
+  setUserId: function(userId) {                                                                                   // 95
+    var self = this;                                                                                              // 96
+    if (self._calledUnblock)                                                                                      // 97
+      throw new Error("Can't call setUserId in a method after calling unblock");                                  // 98
+    self.userId = userId;                                                                                         // 99
+    self._setUserId(userId);                                                                                      // 100
+  }                                                                                                               // 101
+});                                                                                                               // 102
+                                                                                                                  // 103
+parseDDP = function (stringMessage) {                                                                             // 104
+  try {                                                                                                           // 105
+    var msg = JSON.parse(stringMessage);                                                                          // 106
+  } catch (e) {                                                                                                   // 107
+    Meteor._debug("Discarding message with invalid JSON", stringMessage);                                         // 108
+    return null;                                                                                                  // 109
+  }                                                                                                               // 110
+  // DDP messages must be objects.                                                                                // 111
+  if (msg === null || typeof msg !== 'object') {                                                                  // 112
+    Meteor._debug("Discarding non-object DDP message", stringMessage);                                            // 113
+    return null;                                                                                                  // 114
+  }                                                                                                               // 115
+                                                                                                                  // 116
+  // massage msg to get it into "abstract ddp" rather than "wire ddp" format.                                     // 117
+                                                                                                                  // 118
+  // switch between "cleared" rep of unsetting fields and "undefined"                                             // 119
+  // rep of same                                                                                                  // 120
+  if (_.has(msg, 'cleared')) {                                                                                    // 121
+    if (!_.has(msg, 'fields'))                                                                                    // 122
+      msg.fields = {};                                                                                            // 123
+    _.each(msg.cleared, function (clearKey) {                                                                     // 124
+      msg.fields[clearKey] = undefined;                                                                           // 125
+    });                                                                                                           // 126
+    delete msg.cleared;                                                                                           // 127
+  }                                                                                                               // 128
+                                                                                                                  // 129
+  _.each(['fields', 'params', 'result'], function (field) {                                                       // 130
+    if (_.has(msg, field))                                                                                        // 131
+      msg[field] = EJSON._adjustTypesFromJSONValue(msg[field]);                                                   // 132
+  });                                                                                                             // 133
+                                                                                                                  // 134
+  return msg;                                                                                                     // 135
+};                                                                                                                // 136
+                                                                                                                  // 137
+stringifyDDP = function (msg) {                                                                                   // 138
+  var copy = EJSON.clone(msg);                                                                                    // 139
+  // swizzle 'changed' messages from 'fields undefined' rep to 'fields                                            // 140
+  // and cleared' rep                                                                                             // 141
+  if (_.has(msg, 'fields')) {                                                                                     // 142
+    var cleared = [];                                                                                             // 143
+    _.each(msg.fields, function (value, key) {                                                                    // 144
+      if (value === undefined) {                                                                                  // 145
+        cleared.push(key);                                                                                        // 146
+        delete copy.fields[key];                                                                                  // 147
+      }                                                                                                           // 148
+    });                                                                                                           // 149
+    if (!_.isEmpty(cleared))                                                                                      // 150
+      copy.cleared = cleared;                                                                                     // 151
+    if (_.isEmpty(copy.fields))                                                                                   // 152
+      delete copy.fields;                                                                                         // 153
+  }                                                                                                               // 154
+  // adjust types to basic                                                                                        // 155
+  _.each(['fields', 'params', 'result'], function (field) {                                                       // 156
+    if (_.has(copy, field))                                                                                       // 157
+      copy[field] = EJSON._adjustTypesToJSONValue(copy[field]);                                                   // 158
+  });                                                                                                             // 159
+  if (msg.id && typeof msg.id !== 'string') {                                                                     // 160
+    throw new Error("Message id is not a string");                                                                // 161
+  }                                                                                                               // 162
+  return JSON.stringify(copy);                                                                                    // 163
+};                                                                                                                // 164
+                                                                                                                  // 165
+// This is private but it's used in a few places. accounts-base uses                                              // 166
+// it to get the current user. accounts-password uses it to stash SRP                                             // 167
+// state in the DDP session. Meteor.setTimeout and friends clear                                                  // 168
+// it. We can probably find a better way to factor this.                                                          // 169
+DDP._CurrentInvocation = new Meteor.EnvironmentVariable;                                                          // 170
+                                                                                                                  // 171
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }).call(this);

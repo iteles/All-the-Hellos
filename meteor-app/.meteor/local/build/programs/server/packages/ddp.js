@@ -26,9 +26,13 @@ var DDP, DDPServer, LivedataTest, toSockjsUrl, toWebsocketUrl, StreamServer, Hea
 //                                                                                                                     //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
                                                                                                                        //
-DDP = {};                                                                                                              // 1
-LivedataTest = {};                                                                                                     // 2
-                                                                                                                       // 3
+/**                                                                                                                    // 1
+ * @namespace DDP                                                                                                      // 2
+ * @summary The namespace for DDP-related methods.                                                                     // 3
+ */                                                                                                                    // 4
+DDP = {};                                                                                                              // 5
+LivedataTest = {};                                                                                                     // 6
+                                                                                                                       // 7
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }).call(this);
@@ -84,7 +88,7 @@ _.extend(LivedataTest.ClientStream.prototype, {                                 
   send: function (data) {                                                                                              // 36
     var self = this;                                                                                                   // 37
     if (self.currentStatus.connected) {                                                                                // 38
-      self.client.messages.write(data);                                                                                // 39
+      self.client.send(data);                                                                                          // 39
     }                                                                                                                  // 40
   },                                                                                                                   // 41
                                                                                                                        // 42
@@ -159,183 +163,91 @@ _.extend(LivedataTest.ClientStream.prototype, {                                 
     }                                                                                                                  // 111
   },                                                                                                                   // 112
                                                                                                                        // 113
-  _launchConnection: function () {                                                                                     // 114
+  _getProxyUrl: function (targetUrl) {                                                                                 // 114
     var self = this;                                                                                                   // 115
-    self._cleanup(); // cleanup the old socket, if there was one.                                                      // 116
-                                                                                                                       // 117
-    // Since server-to-server DDP is still an experimental feature, we only                                            // 118
-    // require the module if we actually create a server-to-server                                                     // 119
-    // connection.                                                                                                     // 120
-    var websocketDriver = Npm.require('websocket-driver');                                                             // 121
-                                                                                                                       // 122
-    // We would like to specify 'ddp' as the subprotocol here. The npm module we                                       // 123
-    // used to use as a client would fail the handshake if we ask for a                                                // 124
-    // subprotocol and the server doesn't send one back (and sockjs doesn't).                                          // 125
-    // Faye doesn't have that behavior; it's unclear from reading RFC 6455 if                                          // 126
-    // Faye is erroneous or not.  So for now, we don't specify protocols.                                              // 127
-    var wsUrl = toWebsocketUrl(self.endpoint);                                                                         // 128
-    var client = self.client = websocketDriver.client(wsUrl);                                                          // 129
-                                                                                                                       // 130
-    self._clearConnectionTimer();                                                                                      // 131
-    self.connectionTimer = Meteor.setTimeout(                                                                          // 132
-      function () {                                                                                                    // 133
-        self._lostConnection(                                                                                          // 134
-          new DDP.ConnectionError("DDP connection timed out"));                                                        // 135
-      },                                                                                                               // 136
-      self.CONNECT_TIMEOUT);                                                                                           // 137
-                                                                                                                       // 138
-    var onConnect = function () {                                                                                      // 139
-      client.start();                                                                                                  // 140
-    };                                                                                                                 // 141
-    var stream = self._createSocket(wsUrl, onConnect);                                                                 // 142
-                                                                                                                       // 143
-    if (!self.client) {                                                                                                // 144
-      // We hit a connection timeout or other issue while yielding in                                                  // 145
-      // _createSocket. Drop the connection.                                                                           // 146
-      stream.end();                                                                                                    // 147
-      return;                                                                                                          // 148
-    }                                                                                                                  // 149
+    // Similar to code in tools/http-helpers.js.                                                                       // 116
+    var proxy = process.env.HTTP_PROXY || process.env.http_proxy || null;                                              // 117
+    // if we're going to a secure url, try the https_proxy env variable first.                                         // 118
+    if (targetUrl.match(/^wss:/)) {                                                                                    // 119
+      proxy = process.env.HTTPS_PROXY || process.env.https_proxy || proxy;                                             // 120
+    }                                                                                                                  // 121
+    return proxy;                                                                                                      // 122
+  },                                                                                                                   // 123
+                                                                                                                       // 124
+  _launchConnection: function () {                                                                                     // 125
+    var self = this;                                                                                                   // 126
+    self._cleanup(); // cleanup the old socket, if there was one.                                                      // 127
+                                                                                                                       // 128
+    // Since server-to-server DDP is still an experimental feature, we only                                            // 129
+    // require the module if we actually create a server-to-server                                                     // 130
+    // connection.                                                                                                     // 131
+    var FayeWebSocket = Npm.require('faye-websocket');                                                                 // 132
+                                                                                                                       // 133
+    var targetUrl = toWebsocketUrl(self.endpoint);                                                                     // 134
+    var fayeOptions = { headers: self.headers };                                                                       // 135
+    var proxyUrl = self._getProxyUrl(targetUrl);                                                                       // 136
+    if (proxyUrl) {                                                                                                    // 137
+      fayeOptions.proxy = { origin: proxyUrl };                                                                        // 138
+    };                                                                                                                 // 139
+                                                                                                                       // 140
+    // We would like to specify 'ddp' as the subprotocol here. The npm module we                                       // 141
+    // used to use as a client would fail the handshake if we ask for a                                                // 142
+    // subprotocol and the server doesn't send one back (and sockjs doesn't).                                          // 143
+    // Faye doesn't have that behavior; it's unclear from reading RFC 6455 if                                          // 144
+    // Faye is erroneous or not.  So for now, we don't specify protocols.                                              // 145
+    var subprotocols = [];                                                                                             // 146
+                                                                                                                       // 147
+    var client = self.client = new FayeWebSocket.Client(                                                               // 148
+      targetUrl, subprotocols, fayeOptions);                                                                           // 149
                                                                                                                        // 150
-    _.each(self.headers, function (header, name) {                                                                     // 151
-      client.setHeader(name, header);                                                                                  // 152
-    });                                                                                                                // 153
-                                                                                                                       // 154
-    self.client.on('open', Meteor.bindEnvironment(function () {                                                        // 155
-      return self._onConnect(client);                                                                                  // 156
-    }, "stream connect callback"));                                                                                    // 157
+    self._clearConnectionTimer();                                                                                      // 151
+    self.connectionTimer = Meteor.setTimeout(                                                                          // 152
+      function () {                                                                                                    // 153
+        self._lostConnection(                                                                                          // 154
+          new DDP.ConnectionError("DDP connection timed out"));                                                        // 155
+      },                                                                                                               // 156
+      self.CONNECT_TIMEOUT);                                                                                           // 157
                                                                                                                        // 158
-    var clientOnIfCurrent = function (event, description, f) {                                                         // 159
-      self.client.on(event, Meteor.bindEnvironment(function () {                                                       // 160
-        // Ignore events from any connection we've already cleaned up.                                                 // 161
-        if (client !== self.client)                                                                                    // 162
-          return;                                                                                                      // 163
-        f.apply(this, arguments);                                                                                      // 164
-      }, description));                                                                                                // 165
-    };                                                                                                                 // 166
-                                                                                                                       // 167
-    var finalize = Meteor.bindEnvironment(function () {                                                                // 168
-      stream.end();                                                                                                    // 169
-      if (client === self.client) {                                                                                    // 170
-        self._lostConnection();                                                                                        // 171
-      }                                                                                                                // 172
-    }, "finalizing stream");                                                                                           // 173
-                                                                                                                       // 174
-    stream.on('end', finalize);                                                                                        // 175
-    stream.on('close', finalize);                                                                                      // 176
-    client.on('close', finalize);                                                                                      // 177
-                                                                                                                       // 178
-    var onError = function (message) {                                                                                 // 179
-      if (!self.options._dontPrintErrors)                                                                              // 180
-        Meteor._debug("driver error", message);                                                                        // 181
-                                                                                                                       // 182
-      // Faye's 'error' object is not a JS error (and among other things,                                              // 183
-      // doesn't stringify well). Convert it to one.                                                                   // 184
-      self._lostConnection(new DDP.ConnectionError(message));                                                          // 185
-    };                                                                                                                 // 186
-                                                                                                                       // 187
-    clientOnIfCurrent('error', 'driver error callback', function (error) {                                             // 188
-      onError(error.message);                                                                                          // 189
-    });                                                                                                                // 190
+    self.client.on('open', Meteor.bindEnvironment(function () {                                                        // 159
+      return self._onConnect(client);                                                                                  // 160
+    }, "stream connect callback"));                                                                                    // 161
+                                                                                                                       // 162
+    var clientOnIfCurrent = function (event, description, f) {                                                         // 163
+      self.client.on(event, Meteor.bindEnvironment(function () {                                                       // 164
+        // Ignore events from any connection we've already cleaned up.                                                 // 165
+        if (client !== self.client)                                                                                    // 166
+          return;                                                                                                      // 167
+        f.apply(this, arguments);                                                                                      // 168
+      }, description));                                                                                                // 169
+    };                                                                                                                 // 170
+                                                                                                                       // 171
+    clientOnIfCurrent('error', 'stream error callback', function (error) {                                             // 172
+      if (!self.options._dontPrintErrors)                                                                              // 173
+        Meteor._debug("stream error", error.message);                                                                  // 174
+                                                                                                                       // 175
+      // Faye's 'error' object is not a JS error (and among other things,                                              // 176
+      // doesn't stringify well). Convert it to one.                                                                   // 177
+      self._lostConnection(new DDP.ConnectionError(error.message));                                                    // 178
+    });                                                                                                                // 179
+                                                                                                                       // 180
+                                                                                                                       // 181
+    clientOnIfCurrent('close', 'stream close callback', function () {                                                  // 182
+      self._lostConnection();                                                                                          // 183
+    });                                                                                                                // 184
+                                                                                                                       // 185
+                                                                                                                       // 186
+    clientOnIfCurrent('message', 'stream message callback', function (message) {                                       // 187
+      // Ignore binary frames, where message.data is a Buffer                                                          // 188
+      if (typeof message.data !== "string")                                                                            // 189
+        return;                                                                                                        // 190
                                                                                                                        // 191
-    stream.on('error', Meteor.bindEnvironment(function (error) {                                                       // 192
-      if (client === self.client) {                                                                                    // 193
-        onError('Network error: ' + wsUrl + ': ' + error.message);                                                     // 194
-      }                                                                                                                // 195
-      stream.end();                                                                                                    // 196
-    }));                                                                                                               // 197
+      _.each(self.eventCallbacks.message, function (callback) {                                                        // 192
+        callback(message.data);                                                                                        // 193
+      });                                                                                                              // 194
+    });                                                                                                                // 195
+  }                                                                                                                    // 196
+});                                                                                                                    // 197
                                                                                                                        // 198
-    clientOnIfCurrent('message', 'stream message callback', function (message) {                                       // 199
-      // Ignore binary frames, where data is a Buffer                                                                  // 200
-      if (typeof message.data !== "string")                                                                            // 201
-        return;                                                                                                        // 202
-      _.each(self.eventCallbacks.message, function (callback) {                                                        // 203
-        callback(message.data);                                                                                        // 204
-      });                                                                                                              // 205
-    });                                                                                                                // 206
-                                                                                                                       // 207
-    stream.pipe(self.client.io);                                                                                       // 208
-    self.client.io.pipe(stream);                                                                                       // 209
-  },                                                                                                                   // 210
-                                                                                                                       // 211
-  _createSocket: function (wsUrl, onConnect) {                                                                         // 212
-    var self = this;                                                                                                   // 213
-    var urlModule = Npm.require('url');                                                                                // 214
-    var parsedTargetUrl = urlModule.parse(wsUrl);                                                                      // 215
-    var targetUrlPort = +parsedTargetUrl.port;                                                                         // 216
-    if (!targetUrlPort) {                                                                                              // 217
-      targetUrlPort = parsedTargetUrl.protocol === 'wss:' ? 443 : 80;                                                  // 218
-    }                                                                                                                  // 219
-                                                                                                                       // 220
-    // Corporate proxy tunneling support.                                                                              // 221
-    var proxyUrl = self._getProxyUrl(parsedTargetUrl.protocol);                                                        // 222
-    if (proxyUrl) {                                                                                                    // 223
-      var targetProtocol =                                                                                             // 224
-            (parsedTargetUrl.protocol === 'wss:' ? 'https' : 'http');                                                  // 225
-      var parsedProxyUrl = urlModule.parse(proxyUrl);                                                                  // 226
-      var proxyProtocol =                                                                                              // 227
-            (parsedProxyUrl.protocol === 'https:' ? 'Https' : 'Http');                                                 // 228
-      var proxyUrlPort = +parsedProxyUrl.port;                                                                         // 229
-      if (!proxyUrlPort) {                                                                                             // 230
-        proxyUrlPort = parsedProxyUrl.protocol === 'https:' ? 443 : 80;                                                // 231
-      }                                                                                                                // 232
-      var tunnelFnName = targetProtocol + 'Over' + proxyProtocol;                                                      // 233
-      var tunnelAgent = Npm.require('tunnel-agent');                                                                   // 234
-      var proxyOptions = {                                                                                             // 235
-        host: parsedProxyUrl.hostname,                                                                                 // 236
-        port: proxyUrlPort,                                                                                            // 237
-        headers: {                                                                                                     // 238
-          host: parsedTargetUrl.host + ':' + targetUrlPort                                                             // 239
-        }                                                                                                              // 240
-      };                                                                                                               // 241
-      if (parsedProxyUrl.auth) {                                                                                       // 242
-        proxyOptions.proxyAuth = Npm.require('querystring').unescape(                                                  // 243
-          parsedProxyUrl.auth);                                                                                        // 244
-      }                                                                                                                // 245
-      var tunneler = tunnelAgent[tunnelFnName]({proxy: proxyOptions});                                                 // 246
-      var events = Npm.require('events');                                                                              // 247
-      var fakeRequest = new events.EventEmitter();                                                                     // 248
-      var Future = Npm.require('fibers/future');                                                                       // 249
-      var fut = new Future;                                                                                            // 250
-      fakeRequest.on('error', function (e) {                                                                           // 251
-        fut.isResolved() || fut.throw(e);                                                                              // 252
-      });                                                                                                              // 253
-      tunneler.createSocket({                                                                                          // 254
-        host: parsedTargetUrl.host,                                                                                    // 255
-        port: targetUrlPort,                                                                                           // 256
-        request: fakeRequest                                                                                           // 257
-      }, function (socket) {                                                                                           // 258
-        socket.on('close', function () {                                                                               // 259
-          tunneler.removeSocket(socket);                                                                               // 260
-        });                                                                                                            // 261
-        process.nextTick(onConnect);                                                                                   // 262
-        fut.return(socket);                                                                                            // 263
-      });                                                                                                              // 264
-      return fut.wait();                                                                                               // 265
-    }                                                                                                                  // 266
-                                                                                                                       // 267
-    if (parsedTargetUrl.protocol === 'wss:') {                                                                         // 268
-      return Npm.require('tls').connect(                                                                               // 269
-        targetUrlPort, parsedTargetUrl.hostname, onConnect);                                                           // 270
-    } else {                                                                                                           // 271
-      var stream = Npm.require('net').createConnection(                                                                // 272
-        targetUrlPort, parsedTargetUrl.hostname);                                                                      // 273
-      stream.on('connect', onConnect);                                                                                 // 274
-      return stream;                                                                                                   // 275
-    }                                                                                                                  // 276
-  },                                                                                                                   // 277
-                                                                                                                       // 278
-  _getProxyUrl: function (protocol) {                                                                                  // 279
-    var self = this;                                                                                                   // 280
-    // Similar to code in tools/http-helpers.js.                                                                       // 281
-    var proxy = process.env.HTTP_PROXY || process.env.http_proxy || null;                                              // 282
-    // if we're going to a secure url, try the https_proxy env variable first.                                         // 283
-    if (protocol === 'wss:') {                                                                                         // 284
-      proxy = process.env.HTTPS_PROXY || process.env.https_proxy || proxy;                                             // 285
-    }                                                                                                                  // 286
-    return proxy;                                                                                                      // 287
-  }                                                                                                                    // 288
-});                                                                                                                    // 289
-                                                                                                                       // 290
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }).call(this);
@@ -2822,145 +2734,146 @@ MethodInvocation = function (options) {                                         
    * @name  isSimulation                                                                                               // 29
    * @memberOf MethodInvocation                                                                                        // 30
    * @instance                                                                                                         // 31
-   */                                                                                                                  // 32
-  this.isSimulation = options.isSimulation;                                                                            // 33
-                                                                                                                       // 34
-  // call this function to allow other method invocations (from the                                                    // 35
-  // same client) to continue running without waiting for this one to                                                  // 36
-  // complete.                                                                                                         // 37
-  this._unblock = options.unblock || function () {};                                                                   // 38
-  this._calledUnblock = false;                                                                                         // 39
-                                                                                                                       // 40
-  // current user id                                                                                                   // 41
-                                                                                                                       // 42
-  /**                                                                                                                  // 43
-   * @summary The id of the user that made this method call, or `null` if no user was logged in.                       // 44
-   * @locus Anywhere                                                                                                   // 45
-   * @name  userId                                                                                                     // 46
-   * @memberOf MethodInvocation                                                                                        // 47
-   * @instance                                                                                                         // 48
-   */                                                                                                                  // 49
-  this.userId = options.userId;                                                                                        // 50
-                                                                                                                       // 51
-  // sets current user id in all appropriate server contexts and                                                       // 52
-  // reruns subscriptions                                                                                              // 53
-  this._setUserId = options.setUserId || function () {};                                                               // 54
-                                                                                                                       // 55
-  // On the server, the connection this method call came in on.                                                        // 56
-                                                                                                                       // 57
-  /**                                                                                                                  // 58
+   * @type {Boolean}                                                                                                   // 32
+   */                                                                                                                  // 33
+  this.isSimulation = options.isSimulation;                                                                            // 34
+                                                                                                                       // 35
+  // call this function to allow other method invocations (from the                                                    // 36
+  // same client) to continue running without waiting for this one to                                                  // 37
+  // complete.                                                                                                         // 38
+  this._unblock = options.unblock || function () {};                                                                   // 39
+  this._calledUnblock = false;                                                                                         // 40
+                                                                                                                       // 41
+  // current user id                                                                                                   // 42
+                                                                                                                       // 43
+  /**                                                                                                                  // 44
+   * @summary The id of the user that made this method call, or `null` if no user was logged in.                       // 45
+   * @locus Anywhere                                                                                                   // 46
+   * @name  userId                                                                                                     // 47
+   * @memberOf MethodInvocation                                                                                        // 48
+   * @instance                                                                                                         // 49
+   */                                                                                                                  // 50
+  this.userId = options.userId;                                                                                        // 51
+                                                                                                                       // 52
+  // sets current user id in all appropriate server contexts and                                                       // 53
+  // reruns subscriptions                                                                                              // 54
+  this._setUserId = options.setUserId || function () {};                                                               // 55
+                                                                                                                       // 56
+  // On the server, the connection this method call came in on.                                                        // 57
+                                                                                                                       // 58
+  /**                                                                                                                  // 59
    * @summary Access inside a method invocation. The [connection](#meteor_onconnection) that this method was received on. `null` if the method is not associated with a connection, eg. a server initiated method call.
-   * @locus Server                                                                                                     // 60
-   * @name  connection                                                                                                 // 61
-   * @memberOf MethodInvocation                                                                                        // 62
-   * @instance                                                                                                         // 63
-   */                                                                                                                  // 64
-  this.connection = options.connection;                                                                                // 65
-                                                                                                                       // 66
-  // The seed for randomStream value generation                                                                        // 67
-  this.randomSeed = options.randomSeed;                                                                                // 68
-                                                                                                                       // 69
-  // This is set by RandomStream.get; and holds the random stream state                                                // 70
-  this.randomStream = null;                                                                                            // 71
-};                                                                                                                     // 72
-                                                                                                                       // 73
-_.extend(MethodInvocation.prototype, {                                                                                 // 74
-  /**                                                                                                                  // 75
+   * @locus Server                                                                                                     // 61
+   * @name  connection                                                                                                 // 62
+   * @memberOf MethodInvocation                                                                                        // 63
+   * @instance                                                                                                         // 64
+   */                                                                                                                  // 65
+  this.connection = options.connection;                                                                                // 66
+                                                                                                                       // 67
+  // The seed for randomStream value generation                                                                        // 68
+  this.randomSeed = options.randomSeed;                                                                                // 69
+                                                                                                                       // 70
+  // This is set by RandomStream.get; and holds the random stream state                                                // 71
+  this.randomStream = null;                                                                                            // 72
+};                                                                                                                     // 73
+                                                                                                                       // 74
+_.extend(MethodInvocation.prototype, {                                                                                 // 75
+  /**                                                                                                                  // 76
    * @summary Call inside a method invocation.  Allow subsequent method from this client to begin running in a new fiber.
-   * @locus Server                                                                                                     // 77
-   * @memberOf MethodInvocation                                                                                        // 78
-   * @instance                                                                                                         // 79
-   */                                                                                                                  // 80
-  unblock: function () {                                                                                               // 81
-    var self = this;                                                                                                   // 82
-    self._calledUnblock = true;                                                                                        // 83
-    self._unblock();                                                                                                   // 84
-  },                                                                                                                   // 85
-                                                                                                                       // 86
-  /**                                                                                                                  // 87
-   * @summary Set the logged in user.                                                                                  // 88
-   * @locus Server                                                                                                     // 89
-   * @memberOf MethodInvocation                                                                                        // 90
-   * @instance                                                                                                         // 91
-   * @param {String | null} userId The value that should be returned by `userId` on this connection.                   // 92
-   */                                                                                                                  // 93
-  setUserId: function(userId) {                                                                                        // 94
-    var self = this;                                                                                                   // 95
-    if (self._calledUnblock)                                                                                           // 96
-      throw new Error("Can't call setUserId in a method after calling unblock");                                       // 97
-    self.userId = userId;                                                                                              // 98
-    self._setUserId(userId);                                                                                           // 99
-  }                                                                                                                    // 100
-});                                                                                                                    // 101
-                                                                                                                       // 102
-parseDDP = function (stringMessage) {                                                                                  // 103
-  try {                                                                                                                // 104
-    var msg = JSON.parse(stringMessage);                                                                               // 105
-  } catch (e) {                                                                                                        // 106
-    Meteor._debug("Discarding message with invalid JSON", stringMessage);                                              // 107
-    return null;                                                                                                       // 108
-  }                                                                                                                    // 109
-  // DDP messages must be objects.                                                                                     // 110
-  if (msg === null || typeof msg !== 'object') {                                                                       // 111
-    Meteor._debug("Discarding non-object DDP message", stringMessage);                                                 // 112
-    return null;                                                                                                       // 113
-  }                                                                                                                    // 114
-                                                                                                                       // 115
-  // massage msg to get it into "abstract ddp" rather than "wire ddp" format.                                          // 116
-                                                                                                                       // 117
-  // switch between "cleared" rep of unsetting fields and "undefined"                                                  // 118
-  // rep of same                                                                                                       // 119
-  if (_.has(msg, 'cleared')) {                                                                                         // 120
-    if (!_.has(msg, 'fields'))                                                                                         // 121
-      msg.fields = {};                                                                                                 // 122
-    _.each(msg.cleared, function (clearKey) {                                                                          // 123
-      msg.fields[clearKey] = undefined;                                                                                // 124
-    });                                                                                                                // 125
-    delete msg.cleared;                                                                                                // 126
-  }                                                                                                                    // 127
-                                                                                                                       // 128
-  _.each(['fields', 'params', 'result'], function (field) {                                                            // 129
-    if (_.has(msg, field))                                                                                             // 130
-      msg[field] = EJSON._adjustTypesFromJSONValue(msg[field]);                                                        // 131
-  });                                                                                                                  // 132
-                                                                                                                       // 133
-  return msg;                                                                                                          // 134
-};                                                                                                                     // 135
-                                                                                                                       // 136
-stringifyDDP = function (msg) {                                                                                        // 137
-  var copy = EJSON.clone(msg);                                                                                         // 138
-  // swizzle 'changed' messages from 'fields undefined' rep to 'fields                                                 // 139
-  // and cleared' rep                                                                                                  // 140
-  if (_.has(msg, 'fields')) {                                                                                          // 141
-    var cleared = [];                                                                                                  // 142
-    _.each(msg.fields, function (value, key) {                                                                         // 143
-      if (value === undefined) {                                                                                       // 144
-        cleared.push(key);                                                                                             // 145
-        delete copy.fields[key];                                                                                       // 146
-      }                                                                                                                // 147
-    });                                                                                                                // 148
-    if (!_.isEmpty(cleared))                                                                                           // 149
-      copy.cleared = cleared;                                                                                          // 150
-    if (_.isEmpty(copy.fields))                                                                                        // 151
-      delete copy.fields;                                                                                              // 152
-  }                                                                                                                    // 153
-  // adjust types to basic                                                                                             // 154
-  _.each(['fields', 'params', 'result'], function (field) {                                                            // 155
-    if (_.has(copy, field))                                                                                            // 156
-      copy[field] = EJSON._adjustTypesToJSONValue(copy[field]);                                                        // 157
-  });                                                                                                                  // 158
-  if (msg.id && typeof msg.id !== 'string') {                                                                          // 159
-    throw new Error("Message id is not a string");                                                                     // 160
-  }                                                                                                                    // 161
-  return JSON.stringify(copy);                                                                                         // 162
-};                                                                                                                     // 163
-                                                                                                                       // 164
-// This is private but it's used in a few places. accounts-base uses                                                   // 165
-// it to get the current user. accounts-password uses it to stash SRP                                                  // 166
-// state in the DDP session. Meteor.setTimeout and friends clear                                                       // 167
-// it. We can probably find a better way to factor this.                                                               // 168
-DDP._CurrentInvocation = new Meteor.EnvironmentVariable;                                                               // 169
-                                                                                                                       // 170
+   * @locus Server                                                                                                     // 78
+   * @memberOf MethodInvocation                                                                                        // 79
+   * @instance                                                                                                         // 80
+   */                                                                                                                  // 81
+  unblock: function () {                                                                                               // 82
+    var self = this;                                                                                                   // 83
+    self._calledUnblock = true;                                                                                        // 84
+    self._unblock();                                                                                                   // 85
+  },                                                                                                                   // 86
+                                                                                                                       // 87
+  /**                                                                                                                  // 88
+   * @summary Set the logged in user.                                                                                  // 89
+   * @locus Server                                                                                                     // 90
+   * @memberOf MethodInvocation                                                                                        // 91
+   * @instance                                                                                                         // 92
+   * @param {String | null} userId The value that should be returned by `userId` on this connection.                   // 93
+   */                                                                                                                  // 94
+  setUserId: function(userId) {                                                                                        // 95
+    var self = this;                                                                                                   // 96
+    if (self._calledUnblock)                                                                                           // 97
+      throw new Error("Can't call setUserId in a method after calling unblock");                                       // 98
+    self.userId = userId;                                                                                              // 99
+    self._setUserId(userId);                                                                                           // 100
+  }                                                                                                                    // 101
+});                                                                                                                    // 102
+                                                                                                                       // 103
+parseDDP = function (stringMessage) {                                                                                  // 104
+  try {                                                                                                                // 105
+    var msg = JSON.parse(stringMessage);                                                                               // 106
+  } catch (e) {                                                                                                        // 107
+    Meteor._debug("Discarding message with invalid JSON", stringMessage);                                              // 108
+    return null;                                                                                                       // 109
+  }                                                                                                                    // 110
+  // DDP messages must be objects.                                                                                     // 111
+  if (msg === null || typeof msg !== 'object') {                                                                       // 112
+    Meteor._debug("Discarding non-object DDP message", stringMessage);                                                 // 113
+    return null;                                                                                                       // 114
+  }                                                                                                                    // 115
+                                                                                                                       // 116
+  // massage msg to get it into "abstract ddp" rather than "wire ddp" format.                                          // 117
+                                                                                                                       // 118
+  // switch between "cleared" rep of unsetting fields and "undefined"                                                  // 119
+  // rep of same                                                                                                       // 120
+  if (_.has(msg, 'cleared')) {                                                                                         // 121
+    if (!_.has(msg, 'fields'))                                                                                         // 122
+      msg.fields = {};                                                                                                 // 123
+    _.each(msg.cleared, function (clearKey) {                                                                          // 124
+      msg.fields[clearKey] = undefined;                                                                                // 125
+    });                                                                                                                // 126
+    delete msg.cleared;                                                                                                // 127
+  }                                                                                                                    // 128
+                                                                                                                       // 129
+  _.each(['fields', 'params', 'result'], function (field) {                                                            // 130
+    if (_.has(msg, field))                                                                                             // 131
+      msg[field] = EJSON._adjustTypesFromJSONValue(msg[field]);                                                        // 132
+  });                                                                                                                  // 133
+                                                                                                                       // 134
+  return msg;                                                                                                          // 135
+};                                                                                                                     // 136
+                                                                                                                       // 137
+stringifyDDP = function (msg) {                                                                                        // 138
+  var copy = EJSON.clone(msg);                                                                                         // 139
+  // swizzle 'changed' messages from 'fields undefined' rep to 'fields                                                 // 140
+  // and cleared' rep                                                                                                  // 141
+  if (_.has(msg, 'fields')) {                                                                                          // 142
+    var cleared = [];                                                                                                  // 143
+    _.each(msg.fields, function (value, key) {                                                                         // 144
+      if (value === undefined) {                                                                                       // 145
+        cleared.push(key);                                                                                             // 146
+        delete copy.fields[key];                                                                                       // 147
+      }                                                                                                                // 148
+    });                                                                                                                // 149
+    if (!_.isEmpty(cleared))                                                                                           // 150
+      copy.cleared = cleared;                                                                                          // 151
+    if (_.isEmpty(copy.fields))                                                                                        // 152
+      delete copy.fields;                                                                                              // 153
+  }                                                                                                                    // 154
+  // adjust types to basic                                                                                             // 155
+  _.each(['fields', 'params', 'result'], function (field) {                                                            // 156
+    if (_.has(copy, field))                                                                                            // 157
+      copy[field] = EJSON._adjustTypesToJSONValue(copy[field]);                                                        // 158
+  });                                                                                                                  // 159
+  if (msg.id && typeof msg.id !== 'string') {                                                                          // 160
+    throw new Error("Message id is not a string");                                                                     // 161
+  }                                                                                                                    // 162
+  return JSON.stringify(copy);                                                                                         // 163
+};                                                                                                                     // 164
+                                                                                                                       // 165
+// This is private but it's used in a few places. accounts-base uses                                                   // 166
+// it to get the current user. accounts-password uses it to stash SRP                                                  // 167
+// state in the DDP session. Meteor.setTimeout and friends clear                                                       // 168
+// it. We can probably find a better way to factor this.                                                               // 169
+DDP._CurrentInvocation = new Meteor.EnvironmentVariable;                                                               // 170
+                                                                                                                       // 171
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }).call(this);

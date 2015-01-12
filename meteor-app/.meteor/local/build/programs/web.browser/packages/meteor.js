@@ -41,26 +41,29 @@ Meteor = {                                                                      
    * @summary Boolean variable.  True if running in client environment.                                   // 8
    * @locus Anywhere                                                                                      // 9
    * @static                                                                                              // 10
-   */                                                                                                     // 11
-  isClient: true,                                                                                         // 12
-                                                                                                          // 13
-  /**                                                                                                     // 14
-   * @summary Boolean variable.  True if running in server environment.                                   // 15
-   * @locus Anywhere                                                                                      // 16
-   * @static                                                                                              // 17
-   */                                                                                                     // 18
-  isServer: false                                                                                         // 19
-};                                                                                                        // 20
-                                                                                                          // 21
-if (typeof __meteor_runtime_config__ === 'object' &&                                                      // 22
-    __meteor_runtime_config__.PUBLIC_SETTINGS) {                                                          // 23
-  /**                                                                                                     // 24
+   * @type {Boolean}                                                                                      // 11
+   */                                                                                                     // 12
+  isClient: true,                                                                                         // 13
+                                                                                                          // 14
+  /**                                                                                                     // 15
+   * @summary Boolean variable.  True if running in server environment.                                   // 16
+   * @locus Anywhere                                                                                      // 17
+   * @static                                                                                              // 18
+   * @type {Boolean}                                                                                      // 19
+   */                                                                                                     // 20
+  isServer: false                                                                                         // 21
+};                                                                                                        // 22
+                                                                                                          // 23
+if (typeof __meteor_runtime_config__ === 'object' &&                                                      // 24
+    __meteor_runtime_config__.PUBLIC_SETTINGS) {                                                          // 25
+  /**                                                                                                     // 26
    * @summary `Meteor.settings` contains deployment-specific configuration options. You can initialize settings by passing the `--settings` option (which takes the name of a file containing JSON data) to `meteor run` or `meteor deploy`. When running your server directly (e.g. from a bundle), you instead specify settings by putting the JSON directly into the `METEOR_SETTINGS` environment variable. If you don't provide any settings, `Meteor.settings` will be an empty object.  If the settings object contains a key named `public`, then `Meteor.settings.public` will be available on the client as well as the server.  All other properties of `Meteor.settings` are only defined on the server.
-   * @locus Anywhere                                                                                      // 26
-   */                                                                                                     // 27
-  Meteor.settings = { 'public': __meteor_runtime_config__.PUBLIC_SETTINGS };                              // 28
-}                                                                                                         // 29
-                                                                                                          // 30
+   * @locus Anywhere                                                                                      // 28
+   * @type {Object}                                                                                       // 29
+   */                                                                                                     // 30
+  Meteor.settings = { 'public': __meteor_runtime_config__.PUBLIC_SETTINGS };                              // 31
+}                                                                                                         // 32
+                                                                                                          // 33
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }).call(this);
@@ -86,166 +89,167 @@ if (typeof __meteor_runtime_config__ === 'object' &&                            
   /**                                                                                                     // 6
    * @summary `Meteor.release` is a string containing the name of the [release](#meteorupdate) with which the project was built (for example, `"1.2.3"`). It is `undefined` if the project was built using a git checkout of Meteor.
    * @locus Anywhere                                                                                      // 8
-   */                                                                                                     // 9
-  Meteor.release = __meteor_runtime_config__.meteorRelease;                                               // 10
-}                                                                                                         // 11
-                                                                                                          // 12
-// XXX find a better home for these? Ideally they would be _.get,                                         // 13
-// _.ensure, _.delete..                                                                                   // 14
-                                                                                                          // 15
-_.extend(Meteor, {                                                                                        // 16
-  // _get(a,b,c,d) returns a[b][c][d], or else undefined if a[b] or                                       // 17
-  // a[b][c] doesn't exist.                                                                               // 18
-  //                                                                                                      // 19
-  _get: function (obj /*, arguments */) {                                                                 // 20
-    for (var i = 1; i < arguments.length; i++) {                                                          // 21
-      if (!(arguments[i] in obj))                                                                         // 22
-        return undefined;                                                                                 // 23
-      obj = obj[arguments[i]];                                                                            // 24
-    }                                                                                                     // 25
-    return obj;                                                                                           // 26
-  },                                                                                                      // 27
-                                                                                                          // 28
-  // _ensure(a,b,c,d) ensures that a[b][c][d] exists. If it does not,                                     // 29
-  // it is created and set to {}. Either way, it is returned.                                             // 30
-  //                                                                                                      // 31
-  _ensure: function (obj /*, arguments */) {                                                              // 32
-    for (var i = 1; i < arguments.length; i++) {                                                          // 33
-      var key = arguments[i];                                                                             // 34
-      if (!(key in obj))                                                                                  // 35
-        obj[key] = {};                                                                                    // 36
-      obj = obj[key];                                                                                     // 37
-    }                                                                                                     // 38
-                                                                                                          // 39
-    return obj;                                                                                           // 40
-  },                                                                                                      // 41
-                                                                                                          // 42
-  // _delete(a, b, c, d) deletes a[b][c][d], then a[b][c] unless it                                       // 43
-  // isn't empty, then a[b] unless it isn't empty.                                                        // 44
-  //                                                                                                      // 45
-  _delete: function (obj /*, arguments */) {                                                              // 46
-    var stack = [obj];                                                                                    // 47
-    var leaf = true;                                                                                      // 48
-    for (var i = 1; i < arguments.length - 1; i++) {                                                      // 49
-      var key = arguments[i];                                                                             // 50
-      if (!(key in obj)) {                                                                                // 51
-        leaf = false;                                                                                     // 52
-        break;                                                                                            // 53
-      }                                                                                                   // 54
-      obj = obj[key];                                                                                     // 55
-      if (typeof obj !== "object")                                                                        // 56
-        break;                                                                                            // 57
-      stack.push(obj);                                                                                    // 58
-    }                                                                                                     // 59
-                                                                                                          // 60
-    for (var i = stack.length - 1; i >= 0; i--) {                                                         // 61
-      var key = arguments[i+1];                                                                           // 62
-                                                                                                          // 63
-      if (leaf)                                                                                           // 64
-        leaf = false;                                                                                     // 65
-      else                                                                                                // 66
-        for (var other in stack[i][key])                                                                  // 67
-          return; // not empty -- we're done                                                              // 68
-                                                                                                          // 69
-      delete stack[i][key];                                                                               // 70
-    }                                                                                                     // 71
-  },                                                                                                      // 72
-                                                                                                          // 73
-  // wrapAsync can wrap any function that takes some number of arguments that                             // 74
-  // can't be undefined, followed by some optional arguments, where the callback                          // 75
-  // is the last optional argument.                                                                       // 76
-  // e.g. fs.readFile(pathname, [callback]),                                                              // 77
-  // fs.open(pathname, flags, [mode], [callback])                                                         // 78
-  // For maximum effectiveness and least confusion, wrapAsync should be used on                           // 79
-  // functions where the callback is the only argument of type Function.                                  // 80
-                                                                                                          // 81
-  /**                                                                                                     // 82
-   * @memberOf Meteor                                                                                     // 83
+   * @type {String}                                                                                       // 9
+   */                                                                                                     // 10
+  Meteor.release = __meteor_runtime_config__.meteorRelease;                                               // 11
+}                                                                                                         // 12
+                                                                                                          // 13
+// XXX find a better home for these? Ideally they would be _.get,                                         // 14
+// _.ensure, _.delete..                                                                                   // 15
+                                                                                                          // 16
+_.extend(Meteor, {                                                                                        // 17
+  // _get(a,b,c,d) returns a[b][c][d], or else undefined if a[b] or                                       // 18
+  // a[b][c] doesn't exist.                                                                               // 19
+  //                                                                                                      // 20
+  _get: function (obj /*, arguments */) {                                                                 // 21
+    for (var i = 1; i < arguments.length; i++) {                                                          // 22
+      if (!(arguments[i] in obj))                                                                         // 23
+        return undefined;                                                                                 // 24
+      obj = obj[arguments[i]];                                                                            // 25
+    }                                                                                                     // 26
+    return obj;                                                                                           // 27
+  },                                                                                                      // 28
+                                                                                                          // 29
+  // _ensure(a,b,c,d) ensures that a[b][c][d] exists. If it does not,                                     // 30
+  // it is created and set to {}. Either way, it is returned.                                             // 31
+  //                                                                                                      // 32
+  _ensure: function (obj /*, arguments */) {                                                              // 33
+    for (var i = 1; i < arguments.length; i++) {                                                          // 34
+      var key = arguments[i];                                                                             // 35
+      if (!(key in obj))                                                                                  // 36
+        obj[key] = {};                                                                                    // 37
+      obj = obj[key];                                                                                     // 38
+    }                                                                                                     // 39
+                                                                                                          // 40
+    return obj;                                                                                           // 41
+  },                                                                                                      // 42
+                                                                                                          // 43
+  // _delete(a, b, c, d) deletes a[b][c][d], then a[b][c] unless it                                       // 44
+  // isn't empty, then a[b] unless it isn't empty.                                                        // 45
+  //                                                                                                      // 46
+  _delete: function (obj /*, arguments */) {                                                              // 47
+    var stack = [obj];                                                                                    // 48
+    var leaf = true;                                                                                      // 49
+    for (var i = 1; i < arguments.length - 1; i++) {                                                      // 50
+      var key = arguments[i];                                                                             // 51
+      if (!(key in obj)) {                                                                                // 52
+        leaf = false;                                                                                     // 53
+        break;                                                                                            // 54
+      }                                                                                                   // 55
+      obj = obj[key];                                                                                     // 56
+      if (typeof obj !== "object")                                                                        // 57
+        break;                                                                                            // 58
+      stack.push(obj);                                                                                    // 59
+    }                                                                                                     // 60
+                                                                                                          // 61
+    for (var i = stack.length - 1; i >= 0; i--) {                                                         // 62
+      var key = arguments[i+1];                                                                           // 63
+                                                                                                          // 64
+      if (leaf)                                                                                           // 65
+        leaf = false;                                                                                     // 66
+      else                                                                                                // 67
+        for (var other in stack[i][key])                                                                  // 68
+          return; // not empty -- we're done                                                              // 69
+                                                                                                          // 70
+      delete stack[i][key];                                                                               // 71
+    }                                                                                                     // 72
+  },                                                                                                      // 73
+                                                                                                          // 74
+  // wrapAsync can wrap any function that takes some number of arguments that                             // 75
+  // can't be undefined, followed by some optional arguments, where the callback                          // 76
+  // is the last optional argument.                                                                       // 77
+  // e.g. fs.readFile(pathname, [callback]),                                                              // 78
+  // fs.open(pathname, flags, [mode], [callback])                                                         // 79
+  // For maximum effectiveness and least confusion, wrapAsync should be used on                           // 80
+  // functions where the callback is the only argument of type Function.                                  // 81
+                                                                                                          // 82
+  /**                                                                                                     // 83
+   * @memberOf Meteor                                                                                     // 84
    * @summary Wrap a function that takes a callback function as its final parameter. On the server, the wrapped function can be used either synchronously (without passing a callback) or asynchronously (when a callback is passed). On the client, a callback is always required; errors will be logged if there is no callback. If a callback is provided, the environment captured when the original function was called will be restored in the callback.
-   * @locus Anywhere                                                                                      // 85
-   * @param {Function} func A function that takes a callback as its final parameter                       // 86
-   * @param {Object} [context] Optional `this` object against which the original function will be invoked // 87
-   */                                                                                                     // 88
-  wrapAsync: function (fn, context) {                                                                     // 89
-    return function (/* arguments */) {                                                                   // 90
-      var self = context || this;                                                                         // 91
-      var newArgs = _.toArray(arguments);                                                                 // 92
-      var callback;                                                                                       // 93
-                                                                                                          // 94
-      for (var i = newArgs.length - 1; i >= 0; --i) {                                                     // 95
-        var arg = newArgs[i];                                                                             // 96
-        var type = typeof arg;                                                                            // 97
-        if (type !== "undefined") {                                                                       // 98
-          if (type === "function") {                                                                      // 99
-            callback = arg;                                                                               // 100
-          }                                                                                               // 101
-          break;                                                                                          // 102
-        }                                                                                                 // 103
-      }                                                                                                   // 104
-                                                                                                          // 105
-      if (! callback) {                                                                                   // 106
-        if (Meteor.isClient) {                                                                            // 107
-          callback = logErr;                                                                              // 108
-        } else {                                                                                          // 109
-          var fut = new Future();                                                                         // 110
-          callback = fut.resolver();                                                                      // 111
-        }                                                                                                 // 112
-        ++i; // Insert the callback just after arg.                                                       // 113
-      }                                                                                                   // 114
-                                                                                                          // 115
-      newArgs[i] = Meteor.bindEnvironment(callback);                                                      // 116
-      var result = fn.apply(self, newArgs);                                                               // 117
-      return fut ? fut.wait() : result;                                                                   // 118
-    };                                                                                                    // 119
-  },                                                                                                      // 120
-                                                                                                          // 121
-  // Sets child's prototype to a new object whose prototype is parent's                                   // 122
-  // prototype. Used as:                                                                                  // 123
-  //   Meteor._inherits(ClassB, ClassA).                                                                  // 124
-  //   _.extend(ClassB.prototype, { ... })                                                                // 125
-  // Inspired by CoffeeScript's `extend` and Google Closure's `goog.inherits`.                            // 126
-  _inherits: function (Child, Parent) {                                                                   // 127
-    // copy Parent static properties                                                                      // 128
-    for (var key in Parent) {                                                                             // 129
-      // make sure we only copy hasOwnProperty properties vs. prototype                                   // 130
-      // properties                                                                                       // 131
-      if (_.has(Parent, key))                                                                             // 132
-        Child[key] = Parent[key];                                                                         // 133
-    }                                                                                                     // 134
-                                                                                                          // 135
-    // a middle member of prototype chain: takes the prototype from the Parent                            // 136
-    var Middle = function () {                                                                            // 137
-      this.constructor = Child;                                                                           // 138
-    };                                                                                                    // 139
-    Middle.prototype = Parent.prototype;                                                                  // 140
-    Child.prototype = new Middle();                                                                       // 141
-    Child.__super__ = Parent.prototype;                                                                   // 142
-    return Child;                                                                                         // 143
-  }                                                                                                       // 144
-});                                                                                                       // 145
-                                                                                                          // 146
-var warnedAboutWrapAsync = false;                                                                         // 147
-                                                                                                          // 148
-/**                                                                                                       // 149
- * @deprecated in 0.9.3                                                                                   // 150
- */                                                                                                       // 151
-Meteor._wrapAsync = function(fn, context) {                                                               // 152
-  if (! warnedAboutWrapAsync) {                                                                           // 153
-    Meteor._debug("Meteor._wrapAsync has been renamed to Meteor.wrapAsync");                              // 154
-    warnedAboutWrapAsync = true;                                                                          // 155
-  }                                                                                                       // 156
-  return Meteor.wrapAsync.apply(Meteor, arguments);                                                       // 157
-};                                                                                                        // 158
-                                                                                                          // 159
-function logErr(err) {                                                                                    // 160
-  if (err) {                                                                                              // 161
-    return Meteor._debug(                                                                                 // 162
-      "Exception in callback of async function",                                                          // 163
-      err.stack ? err.stack : err                                                                         // 164
-    );                                                                                                    // 165
-  }                                                                                                       // 166
-}                                                                                                         // 167
-                                                                                                          // 168
+   * @locus Anywhere                                                                                      // 86
+   * @param {Function} func A function that takes a callback as its final parameter                       // 87
+   * @param {Object} [context] Optional `this` object against which the original function will be invoked // 88
+   */                                                                                                     // 89
+  wrapAsync: function (fn, context) {                                                                     // 90
+    return function (/* arguments */) {                                                                   // 91
+      var self = context || this;                                                                         // 92
+      var newArgs = _.toArray(arguments);                                                                 // 93
+      var callback;                                                                                       // 94
+                                                                                                          // 95
+      for (var i = newArgs.length - 1; i >= 0; --i) {                                                     // 96
+        var arg = newArgs[i];                                                                             // 97
+        var type = typeof arg;                                                                            // 98
+        if (type !== "undefined") {                                                                       // 99
+          if (type === "function") {                                                                      // 100
+            callback = arg;                                                                               // 101
+          }                                                                                               // 102
+          break;                                                                                          // 103
+        }                                                                                                 // 104
+      }                                                                                                   // 105
+                                                                                                          // 106
+      if (! callback) {                                                                                   // 107
+        if (Meteor.isClient) {                                                                            // 108
+          callback = logErr;                                                                              // 109
+        } else {                                                                                          // 110
+          var fut = new Future();                                                                         // 111
+          callback = fut.resolver();                                                                      // 112
+        }                                                                                                 // 113
+        ++i; // Insert the callback just after arg.                                                       // 114
+      }                                                                                                   // 115
+                                                                                                          // 116
+      newArgs[i] = Meteor.bindEnvironment(callback);                                                      // 117
+      var result = fn.apply(self, newArgs);                                                               // 118
+      return fut ? fut.wait() : result;                                                                   // 119
+    };                                                                                                    // 120
+  },                                                                                                      // 121
+                                                                                                          // 122
+  // Sets child's prototype to a new object whose prototype is parent's                                   // 123
+  // prototype. Used as:                                                                                  // 124
+  //   Meteor._inherits(ClassB, ClassA).                                                                  // 125
+  //   _.extend(ClassB.prototype, { ... })                                                                // 126
+  // Inspired by CoffeeScript's `extend` and Google Closure's `goog.inherits`.                            // 127
+  _inherits: function (Child, Parent) {                                                                   // 128
+    // copy Parent static properties                                                                      // 129
+    for (var key in Parent) {                                                                             // 130
+      // make sure we only copy hasOwnProperty properties vs. prototype                                   // 131
+      // properties                                                                                       // 132
+      if (_.has(Parent, key))                                                                             // 133
+        Child[key] = Parent[key];                                                                         // 134
+    }                                                                                                     // 135
+                                                                                                          // 136
+    // a middle member of prototype chain: takes the prototype from the Parent                            // 137
+    var Middle = function () {                                                                            // 138
+      this.constructor = Child;                                                                           // 139
+    };                                                                                                    // 140
+    Middle.prototype = Parent.prototype;                                                                  // 141
+    Child.prototype = new Middle();                                                                       // 142
+    Child.__super__ = Parent.prototype;                                                                   // 143
+    return Child;                                                                                         // 144
+  }                                                                                                       // 145
+});                                                                                                       // 146
+                                                                                                          // 147
+var warnedAboutWrapAsync = false;                                                                         // 148
+                                                                                                          // 149
+/**                                                                                                       // 150
+ * @deprecated in 0.9.3                                                                                   // 151
+ */                                                                                                       // 152
+Meteor._wrapAsync = function(fn, context) {                                                               // 153
+  if (! warnedAboutWrapAsync) {                                                                           // 154
+    Meteor._debug("Meteor._wrapAsync has been renamed to Meteor.wrapAsync");                              // 155
+    warnedAboutWrapAsync = true;                                                                          // 156
+  }                                                                                                       // 157
+  return Meteor.wrapAsync.apply(Meteor, arguments);                                                       // 158
+};                                                                                                        // 159
+                                                                                                          // 160
+function logErr(err) {                                                                                    // 161
+  if (err) {                                                                                              // 162
+    return Meteor._debug(                                                                                 // 163
+      "Exception in callback of async function",                                                          // 164
+      err.stack ? err.stack : err                                                                         // 165
+    );                                                                                                    // 166
+  }                                                                                                       // 167
+}                                                                                                         // 168
+                                                                                                          // 169
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }).call(this);
@@ -1004,7 +1008,7 @@ Meteor._nodeCodeMustBeInFiber = function () {                                   
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
                                                                                                           //
 /**                                                                                                       // 1
- * @summary Generate an absolute URL pointing to the application. The server reads from the `ROOT_URL` environment variable to determine where it is running. This is taken care of automatically for apps deployed with `meteor deploy`, but must be provided when using `meteor bundle`.
+ * @summary Generate an absolute URL pointing to the application. The server reads from the `ROOT_URL` environment variable to determine where it is running. This is taken care of automatically for apps deployed with `meteor deploy`, but must be provided when using `meteor build`.
  * @locus Anywhere                                                                                        // 3
  * @param {String} [path] A path to append to the root URL. Do not include a leading "`/`".               // 4
  * @param {Object} [options]                                                                              // 5

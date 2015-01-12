@@ -8,19 +8,19 @@
       "resolved": "https://registry.npmjs.org/fibers/-/fibers-1.0.1.tgz"
     },
     "semver": {
-      "version": "2.2.1",
-      "from": "semver@2.2.1",
-      "resolved": "https://registry.npmjs.org/semver/-/semver-2.2.1.tgz"
+      "version": "4.1.0",
+      "from": "semver@4.1.0",
+      "resolved": "https://registry.npmjs.org/semver/-/semver-4.1.0.tgz"
     },
     "source-map-support": {
-      "version": "0.2.5",
-      "from": "source-map-support@0.2.5",
-      "resolved": "https://registry.npmjs.org/source-map-support/-/source-map-support-0.2.5.tgz",
+      "version": "0.2.8",
+      "from": "source-map-support@0.2.8",
+      "resolved": "https://registry.npmjs.org/source-map-support/-/source-map-support-0.2.8.tgz",
       "dependencies": {
         "source-map": {
-          "version": "0.1.29",
-          "from": "source-map@0.1.29",
-          "resolved": "https://registry.npmjs.org/source-map/-/source-map-0.1.29.tgz",
+          "version": "0.1.32",
+          "from": "source-map@0.1.32",
+          "resolved": "https://registry.npmjs.org/source-map/-/source-map-0.1.32.tgz",
           "dependencies": {
             "amdefine": {
               "version": "0.1.0",
