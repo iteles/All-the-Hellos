@@ -7,3 +7,5 @@ meteor-platform
 insecure
 iron:router
 sacha:spin
+velocity:html-reporter
+velocity:core

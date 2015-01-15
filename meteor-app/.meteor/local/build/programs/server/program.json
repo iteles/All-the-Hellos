@@ -1,6 +1,6 @@
 {
   "format": "javascript-image-pre1",
-  "arch": "os",
+  "arch": "os.osx.x86_64",
   "load": [
     {
       "sourceMap": "packages/underscore.js.map",
@@ -276,6 +276,36 @@
       "sourceMap": "packages/sacha_spin.js.map",
       "sourceMapRoot": "packages",
       "path": "packages/sacha_spin.js"
+    },
+    {
+      "sourceMap": "packages/velocity_html-reporter.js.map",
+      "sourceMapRoot": "packages",
+      "path": "packages/velocity_html-reporter.js",
+      "assets": {
+        "lib/velocity_logo.svg": "assets/packages/velocity_html-reporter/lib/velocity_logo.svg",
+        "lib/velocity_cog.svg": "assets/packages/velocity_html-reporter/lib/velocity_cog.svg",
+        "lib/icon-time.png": "assets/packages/velocity_html-reporter/lib/icon-time.png"
+      }
+    },
+    {
+      "sourceMap": "packages/url.js.map",
+      "sourceMapRoot": "packages",
+      "path": "packages/url.js"
+    },
+    {
+      "node_modules": "npm/http/node_modules",
+      "sourceMap": "packages/http.js.map",
+      "sourceMapRoot": "packages",
+      "path": "packages/http.js"
+    },
+    {
+      "node_modules": "npm/velocity:core/node_modules",
+      "sourceMap": "packages/velocity_core.js.map",
+      "sourceMapRoot": "packages",
+      "path": "packages/velocity_core.js",
+      "assets": {
+        "default-fixture.js": "assets/packages/velocity_core/default-fixture.js"
+      }
     },
     {
       "sourceMap": "packages/session.js.map",

@@ -347,11 +347,11 @@
       "where": "client",
       "type": "js",
       "cacheable": true,
-      "url": "/packages/iron_dynamic-template.js?0666476bb2ab57c4e5697b26901f23d8430eb885",
+      "url": "/packages/iron_dynamic-template.js?d425554c9847e4a80567f8ca55719cd6ae3f2722",
       "sourceMap": "packages/iron_dynamic-template.js.map",
-      "sourceMapUrl": "/packages/0666476bb2ab57c4e5697b26901f23d8430eb885.map",
-      "size": 85663,
-      "hash": "0666476bb2ab57c4e5697b26901f23d8430eb885"
+      "sourceMapUrl": "/packages/d425554c9847e4a80567f8ca55719cd6ae3f2722.map",
+      "size": 86389,
+      "hash": "d425554c9847e4a80567f8ca55719cd6ae3f2722"
     },
     {
       "path": "packages/iron_layout.js",
@@ -440,6 +440,72 @@
       "sourceMapUrl": "/packages/6ab6fb94c8dfd98b9fdc1a9831a8051edeec5c04.map",
       "size": 48440,
       "hash": "6ab6fb94c8dfd98b9fdc1a9831a8051edeec5c04"
+    },
+    {
+      "path": "packages/url.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/url.js?2312d739008b2ffa52f13c77c5d6fc59c9e17d56",
+      "sourceMap": "packages/url.js.map",
+      "sourceMapUrl": "/packages/2312d739008b2ffa52f13c77c5d6fc59c9e17d56.map",
+      "size": 6642,
+      "hash": "2312d739008b2ffa52f13c77c5d6fc59c9e17d56"
+    },
+    {
+      "path": "packages/http.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/http.js?9c5d152169ba9a5a57b6b8ec28e64bbd0d308077",
+      "sourceMap": "packages/http.js.map",
+      "sourceMapUrl": "/packages/9c5d152169ba9a5a57b6b8ec28e64bbd0d308077.map",
+      "size": 37036,
+      "hash": "9c5d152169ba9a5a57b6b8ec28e64bbd0d308077"
+    },
+    {
+      "path": "packages/velocity_core.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/velocity_core.js?1566df70b73d8783eefb275bf28df6fe1a11a039",
+      "sourceMap": "packages/velocity_core.js.map",
+      "sourceMapUrl": "/packages/1566df70b73d8783eefb275bf28df6fe1a11a039.map",
+      "size": 8724,
+      "hash": "1566df70b73d8783eefb275bf28df6fe1a11a039"
+    },
+    {
+      "path": "packages/amplify.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/amplify.js?0943ecb804169b991257a319fa92b9e6f34e2d1b",
+      "sourceMap": "packages/amplify.js.map",
+      "sourceMapUrl": "/packages/0943ecb804169b991257a319fa92b9e6f34e2d1b.map",
+      "size": 88428,
+      "hash": "0943ecb804169b991257a319fa92b9e6f34e2d1b"
+    },
+    {
+      "path": "packages/less.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/less.js?7d1bf981a25a449d6270558bcfc983313c40cd26",
+      "sourceMap": "packages/less.js.map",
+      "sourceMapUrl": "/packages/7d1bf981a25a449d6270558bcfc983313c40cd26.map",
+      "size": 1286,
+      "hash": "7d1bf981a25a449d6270558bcfc983313c40cd26"
+    },
+    {
+      "path": "packages/velocity_html-reporter.js",
+      "where": "client",
+      "type": "js",
+      "cacheable": true,
+      "url": "/packages/velocity_html-reporter.js?cf94ce8ed8b0cdf6e387fa55b112e0e005882a1d",
+      "sourceMap": "packages/velocity_html-reporter.js.map",
+      "sourceMapUrl": "/packages/cf94ce8ed8b0cdf6e387fa55b112e0e005882a1d.map",
+      "size": 85561,
+      "hash": "cf94ce8ed8b0cdf6e387fa55b112e0e005882a1d"
     },
     {
       "path": "packages/webapp.js",
@@ -600,9 +666,9 @@
       "where": "client",
       "type": "js",
       "cacheable": true,
-      "url": "/client/templates/recipient_display.js?3e5f7f48cf70559e0ee7dc951429998e981e081b",
-      "size": 325,
-      "hash": "3e5f7f48cf70559e0ee7dc951429998e981e081b"
+      "url": "/client/templates/recipient_display.js?ebe426fd72d7ad1118b24f0471b41f1da9e161c3",
+      "size": 350,
+      "hash": "ebe426fd72d7ad1118b24f0471b41f1da9e161c3"
     },
     {
       "path": "app/client/templates/view_profile.js",
@@ -623,15 +689,42 @@
       "hash": "2a3453bba5b8f7e5a39caf4f0fb6016f1b588104"
     },
     {
-      "path": "668e44a0624d74df127006415781a7fa0cbd67c0.css",
+      "path": "5b9a2e56655588675c49a75a6088e1eb8f806b7e.css",
       "where": "client",
       "type": "css",
       "cacheable": true,
-      "url": "/668e44a0624d74df127006415781a7fa0cbd67c0.css",
-      "sourceMap": "668e44a0624d74df127006415781a7fa0cbd67c0.css.map",
-      "sourceMapUrl": "/668e44a0624d74df127006415781a7fa0cbd67c0.map",
-      "size": 6688,
-      "hash": "668e44a0624d74df127006415781a7fa0cbd67c0"
+      "url": "/5b9a2e56655588675c49a75a6088e1eb8f806b7e.css",
+      "sourceMap": "5b9a2e56655588675c49a75a6088e1eb8f806b7e.css.map",
+      "sourceMapUrl": "/5b9a2e56655588675c49a75a6088e1eb8f806b7e.map",
+      "size": 19872,
+      "hash": "5b9a2e56655588675c49a75a6088e1eb8f806b7e"
+    },
+    {
+      "path": "packages/velocity_html-reporter/lib/velocity_logo.svg",
+      "where": "client",
+      "type": "asset",
+      "cacheable": false,
+      "url": "/packages/velocity_html-reporter/lib/velocity_logo.svg",
+      "size": 3723,
+      "hash": "bd19ecdc8eb1084f7bb562c298e4ce41f9cdc698"
+    },
+    {
+      "path": "packages/velocity_html-reporter/lib/velocity_cog.svg",
+      "where": "client",
+      "type": "asset",
+      "cacheable": false,
+      "url": "/packages/velocity_html-reporter/lib/velocity_cog.svg",
+      "size": 987,
+      "hash": "6e74acfffcbd2bafdc8a95d9db7762ece07b1e81"
+    },
+    {
+      "path": "packages/velocity_html-reporter/lib/icon-time.png",
+      "where": "client",
+      "type": "asset",
+      "cacheable": false,
+      "url": "/packages/velocity_html-reporter/lib/icon-time.png",
+      "size": 2834,
+      "hash": "868f492022a4dab0f1522de6aae0773531bc6e85"
     },
     {
       "path": "app/img/DSLR-camera-icon.png",
