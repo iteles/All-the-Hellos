@@ -1266,19 +1266,19 @@ _.extend(Session.prototype, {                                                   
     if (! self.inQueue)                                                                                                // 420
       return;                                                                                                          // 421
                                                                                                                        // 422
-    if (self.heartbeat) {                                                                                              // 423
-      self.heartbeat.stop();                                                                                           // 424
-      self.heartbeat = null;                                                                                           // 425
-    }                                                                                                                  // 426
-                                                                                                                       // 427
-    if (self.socket) {                                                                                                 // 428
-      self.socket.close();                                                                                             // 429
-      self.socket._meteorSession = null;                                                                               // 430
-    }                                                                                                                  // 431
-                                                                                                                       // 432
-    // Drop the merge box data immediately.                                                                            // 433
-    self.collectionViews = {};                                                                                         // 434
-    self.inQueue = null;                                                                                               // 435
+    // Drop the merge box data immediately.                                                                            // 423
+    self.inQueue = null;                                                                                               // 424
+    self.collectionViews = {};                                                                                         // 425
+                                                                                                                       // 426
+    if (self.heartbeat) {                                                                                              // 427
+      self.heartbeat.stop();                                                                                           // 428
+      self.heartbeat = null;                                                                                           // 429
+    }                                                                                                                  // 430
+                                                                                                                       // 431
+    if (self.socket) {                                                                                                 // 432
+      self.socket.close();                                                                                             // 433
+      self.socket._meteorSession = null;                                                                               // 434
+    }                                                                                                                  // 435
                                                                                                                        // 436
     Package.facts && Package.facts.Facts.incrementServerFact(                                                          // 437
       "livedata", "sessions", -1);                                                                                     // 438

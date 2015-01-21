@@ -114,32 +114,36 @@ _.extend(RoutePolicyConstructor.prototype, {                                    
     self.urlPrefixTypes[urlPrefix] = type;                                                                     // 97
   },                                                                                                           // 98
                                                                                                                // 99
-  classify: function (url) {                                                                                   // 100
-    var self = this;                                                                                           // 101
-    if (url.charAt(0) !== '/')                                                                                 // 102
-      throw new Error('url must be a relative URL: ' + url);                                                   // 103
-    var prefix = _.find(_.keys(self.urlPrefixTypes), function (_prefix) {                                      // 104
-      return self.urlPrefixMatches(_prefix, url);                                                              // 105
-    });                                                                                                        // 106
-    if (prefix)                                                                                                // 107
-      return self.urlPrefixTypes[prefix];                                                                      // 108
-    else                                                                                                       // 109
-      return null;                                                                                             // 110
-  },                                                                                                           // 111
-                                                                                                               // 112
-  urlPrefixesFor: function (type) {                                                                            // 113
-    var self = this;                                                                                           // 114
-    var prefixes = [];                                                                                         // 115
-    _.each(self.urlPrefixTypes, function (_type, _prefix) {                                                    // 116
-      if (_type === type)                                                                                      // 117
-        prefixes.push(_prefix);                                                                                // 118
-    });                                                                                                        // 119
-    return prefixes.sort();                                                                                    // 120
-  }                                                                                                            // 121
-});                                                                                                            // 122
-                                                                                                               // 123
-RoutePolicy = new RoutePolicyConstructor();                                                                    // 124
-                                                                                                               // 125
+  isValidUrl: function (url) {                                                                                 // 100
+    return url.charAt(0) === '/';                                                                              // 101
+  },                                                                                                           // 102
+                                                                                                               // 103
+  classify: function (url) {                                                                                   // 104
+    var self = this;                                                                                           // 105
+    if (url.charAt(0) !== '/')                                                                                 // 106
+      throw new Error('url must be a relative URL: ' + url);                                                   // 107
+    var prefix = _.find(_.keys(self.urlPrefixTypes), function (_prefix) {                                      // 108
+      return self.urlPrefixMatches(_prefix, url);                                                              // 109
+    });                                                                                                        // 110
+    if (prefix)                                                                                                // 111
+      return self.urlPrefixTypes[prefix];                                                                      // 112
+    else                                                                                                       // 113
+      return null;                                                                                             // 114
+  },                                                                                                           // 115
+                                                                                                               // 116
+  urlPrefixesFor: function (type) {                                                                            // 117
+    var self = this;                                                                                           // 118
+    var prefixes = [];                                                                                         // 119
+    _.each(self.urlPrefixTypes, function (_type, _prefix) {                                                    // 120
+      if (_type === type)                                                                                      // 121
+        prefixes.push(_prefix);                                                                                // 122
+    });                                                                                                        // 123
+    return prefixes.sort();                                                                                    // 124
+  }                                                                                                            // 125
+});                                                                                                            // 126
+                                                                                                               // 127
+RoutePolicy = new RoutePolicyConstructor();                                                                    // 128
+                                                                                                               // 129
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }).call(this);

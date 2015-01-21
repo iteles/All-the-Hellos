@@ -9,3 +9,4 @@ iron:router
 sacha:spin
 velocity:html-reporter
 velocity:core
+mike:mocha@0.5.1

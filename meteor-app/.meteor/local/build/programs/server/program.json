@@ -288,23 +288,24 @@
       }
     },
     {
-      "sourceMap": "packages/url.js.map",
-      "sourceMapRoot": "packages",
-      "path": "packages/url.js"
-    },
-    {
-      "node_modules": "npm/http/node_modules",
-      "sourceMap": "packages/http.js.map",
-      "sourceMapRoot": "packages",
-      "path": "packages/http.js"
-    },
-    {
       "node_modules": "npm/velocity:core/node_modules",
       "sourceMap": "packages/velocity_core.js.map",
       "sourceMapRoot": "packages",
-      "path": "packages/velocity_core.js",
+      "path": "packages/velocity_core.js"
+    },
+    {
+      "sourceMap": "packages/velocity_shim.js.map",
+      "sourceMapRoot": "packages",
+      "path": "packages/velocity_shim.js"
+    },
+    {
+      "node_modules": "npm/mike:mocha/node_modules",
+      "sourceMap": "packages/mike_mocha.js.map",
+      "sourceMapRoot": "packages",
+      "path": "packages/mike_mocha.js",
       "assets": {
-        "default-fixture.js": "assets/packages/velocity_core/default-fixture.js"
+        "sample-tests/client.js": "assets/packages/mike_mocha/sample-tests/client.js",
+        "sample-tests/server.js": "assets/packages/mike_mocha/sample-tests/server.js"
       }
     },
     {
@@ -334,6 +335,35 @@
     },
     {
       "path": "app/server/publications.js"
+    },
+    {
+      "sourceMap": "packages/coffeescript.js.map",
+      "sourceMapRoot": "packages",
+      "path": "packages/coffeescript.js"
+    },
+    {
+      "sourceMap": "packages/velocity_test-proxy.js.map",
+      "sourceMapRoot": "packages",
+      "path": "packages/velocity_test-proxy.js"
+    },
+    {
+      "sourceMap": "packages/practicalmeteor_chai.js.map",
+      "sourceMapRoot": "packages",
+      "path": "packages/practicalmeteor_chai.js"
+    },
+    {
+      "sourceMap": "packages/practicalmeteor_loglevel.js.map",
+      "sourceMapRoot": "packages",
+      "path": "packages/practicalmeteor_loglevel.js"
+    },
+    {
+      "node_modules": "npm/velocity:node-soft-mirror/node_modules",
+      "sourceMap": "packages/velocity_node-soft-mirror.js.map",
+      "sourceMapRoot": "packages",
+      "path": "packages/velocity_node-soft-mirror.js",
+      "assets": {
+        "lib/spawnScript.js": "assets/packages/velocity_node-soft-mirror/lib/spawnScript.js"
+      }
     }
   ]
 }

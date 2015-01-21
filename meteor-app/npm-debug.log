@@ -1,0 +1,287 @@
+0 info it worked if it ends with ok
+1 verbose cli [ '/usr/local/bin/node', '/usr/local/bin/npm', 'update' ]
+2 info using npm@1.4.14
+3 info using node@v0.10.29
+4 verbose url raw handlebars
+5 verbose url resolving [ 'https://registry.npmjs.org/', './handlebars' ]
+6 verbose url resolved https://registry.npmjs.org/handlebars
+7 info trying registry request attempt 1 at 19:10:11
+8 verbose etag "1OFD0K6PUO9GMH7M7C30ADL2"
+9 http GET https://registry.npmjs.org/handlebars
+10 verbose url raw hapi
+11 verbose url resolving [ 'https://registry.npmjs.org/', './hapi' ]
+12 verbose url resolved https://registry.npmjs.org/hapi
+13 info trying registry request attempt 1 at 19:10:11
+14 verbose etag "5I8R1KJ98VTBC1W6MRTHE01FW"
+15 http GET https://registry.npmjs.org/hapi
+16 verbose url raw joi
+17 verbose url resolving [ 'https://registry.npmjs.org/', './joi' ]
+18 verbose url resolved https://registry.npmjs.org/joi
+19 info trying registry request attempt 1 at 19:10:11
+20 verbose etag "1BTHAQLBXZ7WI08GHIOYCQ0FP"
+21 http GET https://registry.npmjs.org/joi
+22 verbose url raw lab
+23 verbose url resolving [ 'https://registry.npmjs.org/', './lab' ]
+24 verbose url resolved https://registry.npmjs.org/lab
+25 info trying registry request attempt 1 at 19:10:11
+26 verbose etag "39DCMLLLBCI7VDOON1Z6HSRTO"
+27 http GET https://registry.npmjs.org/lab
+28 http 200 https://registry.npmjs.org/joi
+29 silly registry.get cb [ 200,
+29 silly registry.get   { date: 'Wed, 21 Jan 2015 19:10:11 GMT',
+29 silly registry.get     server: 'CouchDB/1.5.0 (Erlang OTP/R16B03)',
+29 silly registry.get     etag: '"9QQKP0M9GH2BG58BEGMRTFP06"',
+29 silly registry.get     'content-type': 'application/json',
+29 silly registry.get     'cache-control': 'max-age=60',
+29 silly registry.get     'content-length': '128816',
+29 silly registry.get     'accept-ranges': 'bytes',
+29 silly registry.get     via: '1.1 varnish',
+29 silly registry.get     age: '59',
+29 silly registry.get     'x-served-by': 'cache-lcy1123-LCY',
+29 silly registry.get     'x-cache': 'HIT',
+29 silly registry.get     'x-cache-hits': '1',
+29 silly registry.get     'x-timer': 'S1421867411.301971,VS0,VE0',
+29 silly registry.get     vary: 'Accept',
+29 silly registry.get     'keep-alive': 'timeout=10, max=50',
+29 silly registry.get     connection: 'Keep-Alive' } ]
+30 http 200 https://registry.npmjs.org/handlebars
+31 silly registry.get cb [ 200,
+31 silly registry.get   { date: 'Wed, 21 Jan 2015 19:10:11 GMT',
+31 silly registry.get     server: 'CouchDB/1.5.0 (Erlang OTP/R16B03)',
+31 silly registry.get     etag: '"5CDIK60EMHELOKLR0O794Z7XI"',
+31 silly registry.get     'content-type': 'application/json',
+31 silly registry.get     'cache-control': 'max-age=60',
+31 silly registry.get     'content-length': '50403',
+31 silly registry.get     'accept-ranges': 'bytes',
+31 silly registry.get     via: '1.1 varnish',
+31 silly registry.get     age: '0',
+31 silly registry.get     'x-served-by': 'cache-lcy1134-LCY',
+31 silly registry.get     'x-cache': 'HIT',
+31 silly registry.get     'x-cache-hits': '1',
+31 silly registry.get     'x-timer': 'S1421867411.298056,VS0,VE153',
+31 silly registry.get     vary: 'Accept',
+31 silly registry.get     'keep-alive': 'timeout=10, max=50',
+31 silly registry.get     connection: 'Keep-Alive' } ]
+32 http 200 https://registry.npmjs.org/lab
+33 silly registry.get cb [ 200,
+33 silly registry.get   { date: 'Wed, 21 Jan 2015 19:10:11 GMT',
+33 silly registry.get     server: 'CouchDB/1.5.0 (Erlang OTP/R16B03)',
+33 silly registry.get     etag: '"472UMA7A6V3NREQV9VLNKNYZ4"',
+33 silly registry.get     'content-type': 'application/json',
+33 silly registry.get     'cache-control': 'max-age=60',
+33 silly registry.get     'content-length': '89409',
+33 silly registry.get     'accept-ranges': 'bytes',
+33 silly registry.get     via: '1.1 varnish',
+33 silly registry.get     age: '0',
+33 silly registry.get     'x-served-by': 'cache-lcy1128-LCY',
+33 silly registry.get     'x-cache': 'MISS',
+33 silly registry.get     'x-cache-hits': '0',
+33 silly registry.get     'x-timer': 'S1421867411.284960,VS0,VE643',
+33 silly registry.get     vary: 'Accept',
+33 silly registry.get     'keep-alive': 'timeout=10, max=50',
+33 silly registry.get     connection: 'Keep-Alive' } ]
+34 http 200 https://registry.npmjs.org/hapi
+35 silly registry.get cb [ 200,
+35 silly registry.get   { date: 'Wed, 21 Jan 2015 19:10:12 GMT',
+35 silly registry.get     server: 'CouchDB/1.5.0 (Erlang OTP/R16B03)',
+35 silly registry.get     etag: '"E2ZOITIJ1004BOZZH1O1N37V5"',
+35 silly registry.get     'content-type': 'application/json',
+35 silly registry.get     'cache-control': 'max-age=60',
+35 silly registry.get     'content-length': '244843',
+35 silly registry.get     'accept-ranges': 'bytes',
+35 silly registry.get     via: '1.1 varnish',
+35 silly registry.get     age: '0',
+35 silly registry.get     'x-served-by': 'cache-lcy1131-LCY',
+35 silly registry.get     'x-cache': 'HIT',
+35 silly registry.get     'x-cache-hits': '1',
+35 silly registry.get     'x-timer': 'S1421867411.362644,VS0,VE673',
+35 silly registry.get     vary: 'Accept',
+35 silly registry.get     'keep-alive': 'timeout=10, max=50',
+35 silly registry.get     connection: 'Keep-Alive' } ]
+36 info outdated updating [ [ '/Users/iteles/Code/All-the-Hellos',
+36 info outdated     'joi',
+36 info outdated     undefined,
+36 info outdated     '4.6.1',
+36 info outdated     '5.1.0',
+36 info outdated     '4.6.1' ],
+36 info outdated   [ '/Users/iteles/Code/All-the-Hellos',
+36 info outdated     'handlebars',
+36 info outdated     '2.0.0-alpha.4',
+36 info outdated     '2.0.0',
+36 info outdated     '2.0.0',
+36 info outdated     '^2.0.0-alpha.4' ],
+36 info outdated   [ '/Users/iteles/Code/All-the-Hellos',
+36 info outdated     'lab',
+36 info outdated     undefined,
+36 info outdated     '3.2.1',
+36 info outdated     '5.2.0',
+36 info outdated     '3.2.1' ],
+36 info outdated   [ '/Users/iteles/Code/All-the-Hellos',
+36 info outdated     'hapi',
+36 info outdated     undefined,
+36 info outdated     '6.2.0',
+36 info outdated     '8.1.0',
+36 info outdated     '6.2.0' ] ]
+37 verbose install where,what [ '/Users/iteles/Code/All-the-Hellos', [ 'joi@4.6.1' ] ]
+38 verbose install where,what [ '/Users/iteles/Code/All-the-Hellos', [ 'handlebars@2.0.0' ] ]
+39 verbose install where,what [ '/Users/iteles/Code/All-the-Hellos', [ 'lab@3.2.1' ] ]
+40 verbose install where,what [ '/Users/iteles/Code/All-the-Hellos', [ 'hapi@6.2.0' ] ]
+41 verbose readDependencies using package.json deps
+42 verbose cache add [ 'joi@4.6.1', null ]
+43 verbose cache add name=undefined spec="joi@4.6.1" args=["joi@4.6.1",null]
+44 verbose parsed url { protocol: null,
+44 verbose parsed url   slashes: null,
+44 verbose parsed url   auth: null,
+44 verbose parsed url   host: null,
+44 verbose parsed url   port: null,
+44 verbose parsed url   hostname: null,
+44 verbose parsed url   hash: null,
+44 verbose parsed url   search: null,
+44 verbose parsed url   query: null,
+44 verbose parsed url   pathname: 'joi@4.6.1',
+44 verbose parsed url   path: 'joi@4.6.1',
+44 verbose parsed url   href: 'joi@4.6.1' }
+45 verbose readDependencies using package.json deps
+46 verbose cache add [ 'handlebars@2.0.0', null ]
+47 verbose cache add name=undefined spec="handlebars@2.0.0" args=["handlebars@2.0.0",null]
+48 verbose parsed url { protocol: null,
+48 verbose parsed url   slashes: null,
+48 verbose parsed url   auth: null,
+48 verbose parsed url   host: null,
+48 verbose parsed url   port: null,
+48 verbose parsed url   hostname: null,
+48 verbose parsed url   hash: null,
+48 verbose parsed url   search: null,
+48 verbose parsed url   query: null,
+48 verbose parsed url   pathname: 'handlebars@2.0.0',
+48 verbose parsed url   path: 'handlebars@2.0.0',
+48 verbose parsed url   href: 'handlebars@2.0.0' }
+49 verbose readDependencies using package.json deps
+50 verbose cache add [ 'lab@3.2.1', null ]
+51 verbose cache add name=undefined spec="lab@3.2.1" args=["lab@3.2.1",null]
+52 verbose parsed url { protocol: null,
+52 verbose parsed url   slashes: null,
+52 verbose parsed url   auth: null,
+52 verbose parsed url   host: null,
+52 verbose parsed url   port: null,
+52 verbose parsed url   hostname: null,
+52 verbose parsed url   hash: null,
+52 verbose parsed url   search: null,
+52 verbose parsed url   query: null,
+52 verbose parsed url   pathname: 'lab@3.2.1',
+52 verbose parsed url   path: 'lab@3.2.1',
+52 verbose parsed url   href: 'lab@3.2.1' }
+53 verbose readDependencies using package.json deps
+54 verbose cache add [ 'hapi@6.2.0', null ]
+55 verbose cache add name=undefined spec="hapi@6.2.0" args=["hapi@6.2.0",null]
+56 verbose parsed url { protocol: null,
+56 verbose parsed url   slashes: null,
+56 verbose parsed url   auth: null,
+56 verbose parsed url   host: null,
+56 verbose parsed url   port: null,
+56 verbose parsed url   hostname: null,
+56 verbose parsed url   hash: null,
+56 verbose parsed url   search: null,
+56 verbose parsed url   query: null,
+56 verbose parsed url   pathname: 'hapi@6.2.0',
+56 verbose parsed url   path: 'hapi@6.2.0',
+56 verbose parsed url   href: 'hapi@6.2.0' }
+57 verbose cache add name="joi" spec="4.6.1" args=["joi","4.6.1"]
+58 verbose parsed url { protocol: null,
+58 verbose parsed url   slashes: null,
+58 verbose parsed url   auth: null,
+58 verbose parsed url   host: null,
+58 verbose parsed url   port: null,
+58 verbose parsed url   hostname: null,
+58 verbose parsed url   hash: null,
+58 verbose parsed url   search: null,
+58 verbose parsed url   query: null,
+58 verbose parsed url   pathname: '4.6.1',
+58 verbose parsed url   path: '4.6.1',
+58 verbose parsed url   href: '4.6.1' }
+59 verbose addNamed [ 'joi', '4.6.1' ]
+60 verbose addNamed [ '4.6.1', '4.6.1' ]
+61 verbose cache add name="handlebars" spec="2.0.0" args=["handlebars","2.0.0"]
+62 verbose parsed url { protocol: null,
+62 verbose parsed url   slashes: null,
+62 verbose parsed url   auth: null,
+62 verbose parsed url   host: null,
+62 verbose parsed url   port: null,
+62 verbose parsed url   hostname: null,
+62 verbose parsed url   hash: null,
+62 verbose parsed url   search: null,
+62 verbose parsed url   query: null,
+62 verbose parsed url   pathname: '2.0.0',
+62 verbose parsed url   path: '2.0.0',
+62 verbose parsed url   href: '2.0.0' }
+63 verbose addNamed [ 'handlebars', '2.0.0' ]
+64 verbose addNamed [ '2.0.0', '2.0.0' ]
+65 verbose cache add name="lab" spec="3.2.1" args=["lab","3.2.1"]
+66 verbose parsed url { protocol: null,
+66 verbose parsed url   slashes: null,
+66 verbose parsed url   auth: null,
+66 verbose parsed url   host: null,
+66 verbose parsed url   port: null,
+66 verbose parsed url   hostname: null,
+66 verbose parsed url   hash: null,
+66 verbose parsed url   search: null,
+66 verbose parsed url   query: null,
+66 verbose parsed url   pathname: '3.2.1',
+66 verbose parsed url   path: '3.2.1',
+66 verbose parsed url   href: '3.2.1' }
+67 verbose addNamed [ 'lab', '3.2.1' ]
+68 verbose addNamed [ '3.2.1', '3.2.1' ]
+69 verbose cache add name="hapi" spec="6.2.0" args=["hapi","6.2.0"]
+70 verbose parsed url { protocol: null,
+70 verbose parsed url   slashes: null,
+70 verbose parsed url   auth: null,
+70 verbose parsed url   host: null,
+70 verbose parsed url   port: null,
+70 verbose parsed url   hostname: null,
+70 verbose parsed url   hash: null,
+70 verbose parsed url   search: null,
+70 verbose parsed url   query: null,
+70 verbose parsed url   pathname: '6.2.0',
+70 verbose parsed url   path: '6.2.0',
+70 verbose parsed url   href: '6.2.0' }
+71 verbose addNamed [ 'hapi', '6.2.0' ]
+72 verbose addNamed [ '6.2.0', '6.2.0' ]
+73 silly lockFile fcd78637-joi-4-6-1 joi@4.6.1
+74 verbose lock joi@4.6.1 /Users/iteles/.npm/fcd78637-joi-4-6-1.lock
+75 silly lockFile a1e153af-handlebars-2-0-0 handlebars@2.0.0
+76 verbose lock handlebars@2.0.0 /Users/iteles/.npm/a1e153af-handlebars-2-0-0.lock
+77 silly lockFile 23456564-lab-3-2-1 lab@3.2.1
+78 verbose lock lab@3.2.1 /Users/iteles/.npm/23456564-lab-3-2-1.lock
+79 silly lockFile 35a77254-hapi-6-2-0 hapi@6.2.0
+80 verbose lock hapi@6.2.0 /Users/iteles/.npm/35a77254-hapi-6-2-0.lock
+81 verbose registry.get joi not expired, no request
+82 verbose registry.get handlebars not expired, no request
+83 verbose registry.get lab not expired, no request
+84 verbose registry.get hapi not expired, no request
+85 silly lockFile 6c350679--handlebars-handlebars-2-0-0-tgz https://registry.npmjs.org/handlebars/-/handlebars-2.0.0.tgz
+86 verbose lock https://registry.npmjs.org/handlebars/-/handlebars-2.0.0.tgz /Users/iteles/.npm/6c350679--handlebars-handlebars-2-0-0-tgz.lock
+87 silly lockFile 391a14df-ry-npmjs-org-hapi-hapi-6-2-0-tgz https://registry.npmjs.org/hapi/-/hapi-6.2.0.tgz
+88 verbose lock https://registry.npmjs.org/hapi/-/hapi-6.2.0.tgz /Users/iteles/.npm/391a14df-ry-npmjs-org-hapi-hapi-6-2-0-tgz.lock
+89 verbose addRemoteTarball [ 'https://registry.npmjs.org/handlebars/-/handlebars-2.0.0.tgz',
+89 verbose addRemoteTarball   '6e9d7f8514a3467fa5e9f82cc158ecfc1d5ac76f' ]
+90 silly lockFile fcd78637-joi-4-6-1 joi@4.6.1
+91 silly lockFile fcd78637-joi-4-6-1 joi@4.6.1
+92 verbose addRemoteTarball [ 'https://registry.npmjs.org/hapi/-/hapi-6.2.0.tgz',
+92 verbose addRemoteTarball   '70724851ffc12394535b8e3b90a97461091450de' ]
+93 error Error: EACCES, open '/Users/iteles/.npm/joi/4.6.1/package/package.json'
+93 error  { [Error: EACCES, open '/Users/iteles/.npm/joi/4.6.1/package/package.json']
+93 error   errno: 3,
+93 error   code: 'EACCES',
+93 error   path: '/Users/iteles/.npm/joi/4.6.1/package/package.json',
+93 error   parent: 'All-the-Hellos' }
+94 error Please try running this command again as root/Administrator.
+95 error System Darwin 14.0.0
+96 error command "/usr/local/bin/node" "/usr/local/bin/npm" "update"
+97 error cwd /Users/iteles/Code/All-the-Hellos/meteor-app
+98 error node -v v0.10.29
+99 error npm -v 1.4.14
+100 error path /Users/iteles/.npm/joi/4.6.1/package/package.json
+101 error code EACCES
+102 error errno 3
+103 error stack Error: EACCES, open '/Users/iteles/.npm/joi/4.6.1/package/package.json'
+104 verbose exit [ 3, true ]

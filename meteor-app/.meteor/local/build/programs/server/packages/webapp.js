@@ -56,1182 +56,1121 @@ var archPath = {};                                                              
                                                                                          // 30
 var bundledJsCssPrefix;                                                                  // 31
                                                                                          // 32
-// Keepalives so that when the outer server dies unceremoniously and                     // 33
-// doesn't kill us, we quit ourselves. A little gross, but better than                   // 34
-// pidfiles.                                                                             // 35
-// XXX This should really be part of the boot script, not the webapp package.            // 36
-//     Or we should just get rid of it, and rely on containerization.                    // 37
-//                                                                                       // 38
-// XXX COMPAT WITH 0.9.2.2                                                               // 39
-// Keepalives have been replaced with a check that the parent pid is                     // 40
-// still running. We keep the --keep-alive option for backwards                          // 41
-// compatibility.                                                                        // 42
-var initKeepalive = function () {                                                        // 43
-  var keepaliveCount = 0;                                                                // 44
-                                                                                         // 45
-  process.stdin.on('data', function (data) {                                             // 46
-    keepaliveCount = 0;                                                                  // 47
-  });                                                                                    // 48
-                                                                                         // 49
-  process.stdin.resume();                                                                // 50
-                                                                                         // 51
-  setInterval(function () {                                                              // 52
-    keepaliveCount ++;                                                                   // 53
-    if (keepaliveCount >= 3) {                                                           // 54
-      console.log("Failed to receive keepalive! Exiting.");                              // 55
-      process.exit(1);                                                                   // 56
-    }                                                                                    // 57
-  }, 3000);                                                                              // 58
-};                                                                                       // 59
-                                                                                         // 60
-// Check that we have a pid that looks like an integer (non-decimal                      // 61
-// integer is okay).                                                                     // 62
-var validPid = function (pid) {                                                          // 63
-  return ! isNaN(+pid);                                                                  // 64
-};                                                                                       // 65
-                                                                                         // 66
-// As a replacement to the old keepalives mechanism, check for a running                 // 67
-// parent every few seconds. Exit if the parent is not running.                          // 68
+var sha1 = function (contents) {                                                         // 33
+  var hash = crypto.createHash('sha1');                                                  // 34
+  hash.update(contents);                                                                 // 35
+  return hash.digest('hex');                                                             // 36
+};                                                                                       // 37
+                                                                                         // 38
+var readUtf8FileSync = function (filename) {                                             // 39
+  return Meteor.wrapAsync(fs.readFile)(filename, 'utf8');                                // 40
+};                                                                                       // 41
+                                                                                         // 42
+// #BrowserIdentification                                                                // 43
+//                                                                                       // 44
+// We have multiple places that want to identify the browser: the                        // 45
+// unsupported browser page, the appcache package, and, eventually                       // 46
+// delivering browser polyfills only as needed.                                          // 47
+//                                                                                       // 48
+// To avoid detecting the browser in multiple places ad-hoc, we create a                 // 49
+// Meteor "browser" object. It uses but does not expose the npm                          // 50
+// useragent module (we could choose a different mechanism to identify                   // 51
+// the browser in the future if we wanted to).  The browser object                       // 52
+// contains                                                                              // 53
+//                                                                                       // 54
+// * `name`: the name of the browser in camel case                                       // 55
+// * `major`, `minor`, `patch`: integers describing the browser version                  // 56
+//                                                                                       // 57
+// Also here is an early version of a Meteor `request` object, intended                  // 58
+// to be a high-level description of the request without exposing                        // 59
+// details of connect's low-level `req`.  Currently it contains:                         // 60
+//                                                                                       // 61
+// * `browser`: browser identification object described above                            // 62
+// * `url`: parsed url, including parsed query params                                    // 63
+//                                                                                       // 64
+// As a temporary hack there is a `categorizeRequest` function on WebApp which           // 65
+// converts a connect `req` to a Meteor `request`. This can go away once smart           // 66
+// packages such as appcache are being passed a `request` object directly when           // 67
+// they serve content.                                                                   // 68
 //                                                                                       // 69
-// Two caveats to this strategy:                                                         // 70
-// * Doesn't catch the case where the parent is CPU-hogging (but maybe we                // 71
-//   don't want to catch that case anyway, since the bundler not yielding                // 72
-//   is what caused #2536).                                                              // 73
-// * Could be fooled by pid re-use, i.e. if another process comes up and                 // 74
-//   takes the parent process's place before the child process dies.                     // 75
-var startCheckForLiveParent = function (parentPid) {                                     // 76
-  if (parentPid) {                                                                       // 77
-    if (! validPid(parentPid)) {                                                         // 78
-      console.error("--parent-pid must be a valid process ID.");                         // 79
-      process.exit(1);                                                                   // 80
-    }                                                                                    // 81
-                                                                                         // 82
-    setInterval(function () {                                                            // 83
-      try {                                                                              // 84
-        process.kill(parentPid, 0);                                                      // 85
-      } catch (err) {                                                                    // 86
-        console.error("Parent process is dead! Exiting.");                               // 87
-        process.exit(1);                                                                 // 88
-      }                                                                                  // 89
-    }, 3000);                                                                            // 90
-  }                                                                                      // 91
-};                                                                                       // 92
-                                                                                         // 93
-                                                                                         // 94
-var sha1 = function (contents) {                                                         // 95
-  var hash = crypto.createHash('sha1');                                                  // 96
-  hash.update(contents);                                                                 // 97
-  return hash.digest('hex');                                                             // 98
-};                                                                                       // 99
+// This allows `request` to be used uniformly: it is passed to the html                  // 70
+// attributes hook, and the appcache package can use it when deciding                    // 71
+// whether to generate a 404 for the manifest.                                           // 72
+//                                                                                       // 73
+// Real routing / server side rendering will probably refactor this                      // 74
+// heavily.                                                                              // 75
+                                                                                         // 76
+                                                                                         // 77
+// e.g. "Mobile Safari" => "mobileSafari"                                                // 78
+var camelCase = function (name) {                                                        // 79
+  var parts = name.split(' ');                                                           // 80
+  parts[0] = parts[0].toLowerCase();                                                     // 81
+  for (var i = 1;  i < parts.length;  ++i) {                                             // 82
+    parts[i] = parts[i].charAt(0).toUpperCase() + parts[i].substr(1);                    // 83
+  }                                                                                      // 84
+  return parts.join('');                                                                 // 85
+};                                                                                       // 86
+                                                                                         // 87
+var identifyBrowser = function (userAgentString) {                                       // 88
+  var userAgent = useragent.lookup(userAgentString);                                     // 89
+  return {                                                                               // 90
+    name: camelCase(userAgent.family),                                                   // 91
+    major: +userAgent.major,                                                             // 92
+    minor: +userAgent.minor,                                                             // 93
+    patch: +userAgent.patch                                                              // 94
+  };                                                                                     // 95
+};                                                                                       // 96
+                                                                                         // 97
+// XXX Refactor as part of implementing real routing.                                    // 98
+WebAppInternals.identifyBrowser = identifyBrowser;                                       // 99
                                                                                          // 100
-var readUtf8FileSync = function (filename) {                                             // 101
-  return Meteor.wrapAsync(fs.readFile)(filename, 'utf8');                                // 102
-};                                                                                       // 103
-                                                                                         // 104
-// #BrowserIdentification                                                                // 105
-//                                                                                       // 106
-// We have multiple places that want to identify the browser: the                        // 107
-// unsupported browser page, the appcache package, and, eventually                       // 108
-// delivering browser polyfills only as needed.                                          // 109
-//                                                                                       // 110
-// To avoid detecting the browser in multiple places ad-hoc, we create a                 // 111
-// Meteor "browser" object. It uses but does not expose the npm                          // 112
-// useragent module (we could choose a different mechanism to identify                   // 113
-// the browser in the future if we wanted to).  The browser object                       // 114
-// contains                                                                              // 115
-//                                                                                       // 116
-// * `name`: the name of the browser in camel case                                       // 117
-// * `major`, `minor`, `patch`: integers describing the browser version                  // 118
-//                                                                                       // 119
-// Also here is an early version of a Meteor `request` object, intended                  // 120
-// to be a high-level description of the request without exposing                        // 121
-// details of connect's low-level `req`.  Currently it contains:                         // 122
-//                                                                                       // 123
-// * `browser`: browser identification object described above                            // 124
-// * `url`: parsed url, including parsed query params                                    // 125
-//                                                                                       // 126
-// As a temporary hack there is a `categorizeRequest` function on WebApp which           // 127
-// converts a connect `req` to a Meteor `request`. This can go away once smart           // 128
-// packages such as appcache are being passed a `request` object directly when           // 129
-// they serve content.                                                                   // 130
-//                                                                                       // 131
-// This allows `request` to be used uniformly: it is passed to the html                  // 132
-// attributes hook, and the appcache package can use it when deciding                    // 133
-// whether to generate a 404 for the manifest.                                           // 134
-//                                                                                       // 135
-// Real routing / server side rendering will probably refactor this                      // 136
-// heavily.                                                                              // 137
-                                                                                         // 138
-                                                                                         // 139
-// e.g. "Mobile Safari" => "mobileSafari"                                                // 140
-var camelCase = function (name) {                                                        // 141
-  var parts = name.split(' ');                                                           // 142
-  parts[0] = parts[0].toLowerCase();                                                     // 143
-  for (var i = 1;  i < parts.length;  ++i) {                                             // 144
-    parts[i] = parts[i].charAt(0).toUpperCase() + parts[i].substr(1);                    // 145
-  }                                                                                      // 146
-  return parts.join('');                                                                 // 147
+WebApp.categorizeRequest = function (req) {                                              // 101
+  return {                                                                               // 102
+    browser: identifyBrowser(req.headers['user-agent']),                                 // 103
+    url: url.parse(req.url, true)                                                        // 104
+  };                                                                                     // 105
+};                                                                                       // 106
+                                                                                         // 107
+// HTML attribute hooks: functions to be called to determine any attributes to           // 108
+// be added to the '<html>' tag. Each function is passed a 'request' object (see         // 109
+// #BrowserIdentification) and should return null or object.                             // 110
+var htmlAttributeHooks = [];                                                             // 111
+var getHtmlAttributes = function (request) {                                             // 112
+  var combinedAttributes  = {};                                                          // 113
+  _.each(htmlAttributeHooks || [], function (hook) {                                     // 114
+    var attributes = hook(request);                                                      // 115
+    if (attributes === null)                                                             // 116
+      return;                                                                            // 117
+    if (typeof attributes !== 'object')                                                  // 118
+      throw Error("HTML attribute hook must return null or object");                     // 119
+    _.extend(combinedAttributes, attributes);                                            // 120
+  });                                                                                    // 121
+  return combinedAttributes;                                                             // 122
+};                                                                                       // 123
+WebApp.addHtmlAttributeHook = function (hook) {                                          // 124
+  htmlAttributeHooks.push(hook);                                                         // 125
+};                                                                                       // 126
+                                                                                         // 127
+// Serve app HTML for this URL?                                                          // 128
+var appUrl = function (url) {                                                            // 129
+  if (url === '/favicon.ico' || url === '/robots.txt')                                   // 130
+    return false;                                                                        // 131
+                                                                                         // 132
+  // NOTE: app.manifest is not a web standard like favicon.ico and                       // 133
+  // robots.txt. It is a file name we have chosen to use for HTML5                       // 134
+  // appcache URLs. It is included here to prevent using an appcache                     // 135
+  // then removing it from poisoning an app permanently. Eventually,                     // 136
+  // once we have server side routing, this won't be needed as                           // 137
+  // unknown URLs with return a 404 automatically.                                       // 138
+  if (url === '/app.manifest')                                                           // 139
+    return false;                                                                        // 140
+                                                                                         // 141
+  // Avoid serving app HTML for declared routes such as /sockjs/.                        // 142
+  if (RoutePolicy.classify(url))                                                         // 143
+    return false;                                                                        // 144
+                                                                                         // 145
+  // we currently return app HTML on all URLs by default                                 // 146
+  return true;                                                                           // 147
 };                                                                                       // 148
                                                                                          // 149
-var identifyBrowser = function (userAgentString) {                                       // 150
-  var userAgent = useragent.lookup(userAgentString);                                     // 151
-  return {                                                                               // 152
-    name: camelCase(userAgent.family),                                                   // 153
-    major: +userAgent.major,                                                             // 154
-    minor: +userAgent.minor,                                                             // 155
-    patch: +userAgent.patch                                                              // 156
-  };                                                                                     // 157
-};                                                                                       // 158
-                                                                                         // 159
-// XXX Refactor as part of implementing real routing.                                    // 160
-WebAppInternals.identifyBrowser = identifyBrowser;                                       // 161
-                                                                                         // 162
-WebApp.categorizeRequest = function (req) {                                              // 163
-  return {                                                                               // 164
-    browser: identifyBrowser(req.headers['user-agent']),                                 // 165
-    url: url.parse(req.url, true)                                                        // 166
-  };                                                                                     // 167
-};                                                                                       // 168
-                                                                                         // 169
-// HTML attribute hooks: functions to be called to determine any attributes to           // 170
-// be added to the '<html>' tag. Each function is passed a 'request' object (see         // 171
-// #BrowserIdentification) and should return null or object.                             // 172
-var htmlAttributeHooks = [];                                                             // 173
-var getHtmlAttributes = function (request) {                                             // 174
-  var combinedAttributes  = {};                                                          // 175
-  _.each(htmlAttributeHooks || [], function (hook) {                                     // 176
-    var attributes = hook(request);                                                      // 177
-    if (attributes === null)                                                             // 178
-      return;                                                                            // 179
-    if (typeof attributes !== 'object')                                                  // 180
-      throw Error("HTML attribute hook must return null or object");                     // 181
-    _.extend(combinedAttributes, attributes);                                            // 182
-  });                                                                                    // 183
-  return combinedAttributes;                                                             // 184
-};                                                                                       // 185
-WebApp.addHtmlAttributeHook = function (hook) {                                          // 186
-  htmlAttributeHooks.push(hook);                                                         // 187
-};                                                                                       // 188
-                                                                                         // 189
-// Serve app HTML for this URL?                                                          // 190
-var appUrl = function (url) {                                                            // 191
-  if (url === '/favicon.ico' || url === '/robots.txt')                                   // 192
-    return false;                                                                        // 193
-                                                                                         // 194
-  // NOTE: app.manifest is not a web standard like favicon.ico and                       // 195
-  // robots.txt. It is a file name we have chosen to use for HTML5                       // 196
-  // appcache URLs. It is included here to prevent using an appcache                     // 197
-  // then removing it from poisoning an app permanently. Eventually,                     // 198
-  // once we have server side routing, this won't be needed as                           // 199
-  // unknown URLs with return a 404 automatically.                                       // 200
-  if (url === '/app.manifest')                                                           // 201
-    return false;                                                                        // 202
-                                                                                         // 203
-  // Avoid serving app HTML for declared routes such as /sockjs/.                        // 204
-  if (RoutePolicy.classify(url))                                                         // 205
-    return false;                                                                        // 206
-                                                                                         // 207
-  // we currently return app HTML on all URLs by default                                 // 208
-  return true;                                                                           // 209
-};                                                                                       // 210
-                                                                                         // 211
-                                                                                         // 212
-// We need to calculate the client hash after all packages have loaded                   // 213
-// to give them a chance to populate __meteor_runtime_config__.                          // 214
-//                                                                                       // 215
-// Calculating the hash during startup means that packages can only                      // 216
-// populate __meteor_runtime_config__ during load, not during startup.                   // 217
-//                                                                                       // 218
-// Calculating instead it at the beginning of main after all startup                     // 219
-// hooks had run would allow packages to also populate                                   // 220
-// __meteor_runtime_config__ during startup, but that's too late for                     // 221
-// autoupdate because it needs to have the client hash at startup to                     // 222
-// insert the auto update version itself into                                            // 223
-// __meteor_runtime_config__ to get it to the client.                                    // 224
-//                                                                                       // 225
-// An alternative would be to give autoupdate a "post-start,                             // 226
-// pre-listen" hook to allow it to insert the auto update version at                     // 227
-// the right moment.                                                                     // 228
+                                                                                         // 150
+// We need to calculate the client hash after all packages have loaded                   // 151
+// to give them a chance to populate __meteor_runtime_config__.                          // 152
+//                                                                                       // 153
+// Calculating the hash during startup means that packages can only                      // 154
+// populate __meteor_runtime_config__ during load, not during startup.                   // 155
+//                                                                                       // 156
+// Calculating instead it at the beginning of main after all startup                     // 157
+// hooks had run would allow packages to also populate                                   // 158
+// __meteor_runtime_config__ during startup, but that's too late for                     // 159
+// autoupdate because it needs to have the client hash at startup to                     // 160
+// insert the auto update version itself into                                            // 161
+// __meteor_runtime_config__ to get it to the client.                                    // 162
+//                                                                                       // 163
+// An alternative would be to give autoupdate a "post-start,                             // 164
+// pre-listen" hook to allow it to insert the auto update version at                     // 165
+// the right moment.                                                                     // 166
+                                                                                         // 167
+Meteor.startup(function () {                                                             // 168
+  var calculateClientHash = WebAppHashing.calculateClientHash;                           // 169
+  WebApp.clientHash = function (archName) {                                              // 170
+    archName = archName || WebApp.defaultArch;                                           // 171
+    return calculateClientHash(WebApp.clientPrograms[archName].manifest);                // 172
+  };                                                                                     // 173
+                                                                                         // 174
+  WebApp.calculateClientHashRefreshable = function (archName) {                          // 175
+    archName = archName || WebApp.defaultArch;                                           // 176
+    return calculateClientHash(WebApp.clientPrograms[archName].manifest,                 // 177
+      function (name) {                                                                  // 178
+        return name === "css";                                                           // 179
+      });                                                                                // 180
+  };                                                                                     // 181
+  WebApp.calculateClientHashNonRefreshable = function (archName) {                       // 182
+    archName = archName || WebApp.defaultArch;                                           // 183
+    return calculateClientHash(WebApp.clientPrograms[archName].manifest,                 // 184
+      function (name) {                                                                  // 185
+        return name !== "css";                                                           // 186
+      });                                                                                // 187
+  };                                                                                     // 188
+  WebApp.calculateClientHashCordova = function () {                                      // 189
+    var archName = 'web.cordova';                                                        // 190
+    if (! WebApp.clientPrograms[archName])                                               // 191
+      return 'none';                                                                     // 192
+                                                                                         // 193
+    return calculateClientHash(                                                          // 194
+      WebApp.clientPrograms[archName].manifest, null, _.pick(                            // 195
+        __meteor_runtime_config__, 'PUBLIC_SETTINGS'));                                  // 196
+  };                                                                                     // 197
+});                                                                                      // 198
+                                                                                         // 199
+                                                                                         // 200
+                                                                                         // 201
+// When we have a request pending, we want the socket timeout to be long, to             // 202
+// give ourselves a while to serve it, and to allow sockjs long polls to                 // 203
+// complete.  On the other hand, we want to close idle sockets relatively                // 204
+// quickly, so that we can shut down relatively promptly but cleanly, without            // 205
+// cutting off anyone's response.                                                        // 206
+WebApp._timeoutAdjustmentRequestCallback = function (req, res) {                         // 207
+  // this is really just req.socket.setTimeout(LONG_SOCKET_TIMEOUT);                     // 208
+  req.setTimeout(LONG_SOCKET_TIMEOUT);                                                   // 209
+  // Insert our new finish listener to run BEFORE the existing one which removes         // 210
+  // the response from the socket.                                                       // 211
+  var finishListeners = res.listeners('finish');                                         // 212
+  // XXX Apparently in Node 0.12 this event is now called 'prefinish'.                   // 213
+  // https://github.com/joyent/node/commit/7c9b6070                                      // 214
+  res.removeAllListeners('finish');                                                      // 215
+  res.on('finish', function () {                                                         // 216
+    res.setTimeout(SHORT_SOCKET_TIMEOUT);                                                // 217
+  });                                                                                    // 218
+  _.each(finishListeners, function (l) { res.on('finish', l); });                        // 219
+};                                                                                       // 220
+                                                                                         // 221
+                                                                                         // 222
+// Will be updated by main before we listen.                                             // 223
+// Map from client arch to boilerplate object.                                           // 224
+// Boilerplate object has:                                                               // 225
+//   - func: XXX                                                                         // 226
+//   - baseData: XXX                                                                     // 227
+var boilerplateByArch = {};                                                              // 228
                                                                                          // 229
-Meteor.startup(function () {                                                             // 230
-  var calculateClientHash = WebAppHashing.calculateClientHash;                           // 231
-  WebApp.clientHash = function (archName) {                                              // 232
-    archName = archName || WebApp.defaultArch;                                           // 233
-    return calculateClientHash(WebApp.clientPrograms[archName].manifest);                // 234
-  };                                                                                     // 235
-                                                                                         // 236
-  WebApp.calculateClientHashRefreshable = function (archName) {                          // 237
-    archName = archName || WebApp.defaultArch;                                           // 238
-    return calculateClientHash(WebApp.clientPrograms[archName].manifest,                 // 239
-      function (name) {                                                                  // 240
-        return name === "css";                                                           // 241
-      });                                                                                // 242
-  };                                                                                     // 243
-  WebApp.calculateClientHashNonRefreshable = function (archName) {                       // 244
-    archName = archName || WebApp.defaultArch;                                           // 245
-    return calculateClientHash(WebApp.clientPrograms[archName].manifest,                 // 246
-      function (name) {                                                                  // 247
-        return name !== "css";                                                           // 248
-      });                                                                                // 249
-  };                                                                                     // 250
-  WebApp.calculateClientHashCordova = function () {                                      // 251
-    var archName = 'web.cordova';                                                        // 252
-    if (! WebApp.clientPrograms[archName])                                               // 253
-      return 'none';                                                                     // 254
-                                                                                         // 255
-    return calculateClientHash(                                                          // 256
-      WebApp.clientPrograms[archName].manifest, null, _.pick(                            // 257
-        __meteor_runtime_config__, 'PUBLIC_SETTINGS'));                                  // 258
-  };                                                                                     // 259
-});                                                                                      // 260
+// Given a request (as returned from `categorizeRequest`), return the                    // 230
+// boilerplate HTML to serve for that request. Memoizes on HTML                          // 231
+// attributes (used by, eg, appcache) and whether inline scripts are                     // 232
+// currently allowed.                                                                    // 233
+// XXX so far this function is always called with arch === 'web.browser'                 // 234
+var memoizedBoilerplate = {};                                                            // 235
+var getBoilerplate = function (request, arch) {                                          // 236
+                                                                                         // 237
+  var htmlAttributes = getHtmlAttributes(request);                                       // 238
+                                                                                         // 239
+  // The only thing that changes from request to request (for now) are                   // 240
+  // the HTML attributes (used by, eg, appcache) and whether inline                      // 241
+  // scripts are allowed, so we can memoize based on that.                               // 242
+  var memHash = JSON.stringify({                                                         // 243
+    inlineScriptsAllowed: inlineScriptsAllowed,                                          // 244
+    htmlAttributes: htmlAttributes,                                                      // 245
+    arch: arch                                                                           // 246
+  });                                                                                    // 247
+                                                                                         // 248
+  if (! memoizedBoilerplate[memHash]) {                                                  // 249
+    memoizedBoilerplate[memHash] = boilerplateByArch[arch].toHTML({                      // 250
+      htmlAttributes: htmlAttributes                                                     // 251
+    });                                                                                  // 252
+  }                                                                                      // 253
+  return memoizedBoilerplate[memHash];                                                   // 254
+};                                                                                       // 255
+                                                                                         // 256
+WebAppInternals.generateBoilerplateInstance = function (arch,                            // 257
+                                                        manifest,                        // 258
+                                                        additionalOptions) {             // 259
+  additionalOptions = additionalOptions || {};                                           // 260
                                                                                          // 261
-                                                                                         // 262
-                                                                                         // 263
-// When we have a request pending, we want the socket timeout to be long, to             // 264
-// give ourselves a while to serve it, and to allow sockjs long polls to                 // 265
-// complete.  On the other hand, we want to close idle sockets relatively                // 266
-// quickly, so that we can shut down relatively promptly but cleanly, without            // 267
-// cutting off anyone's response.                                                        // 268
-WebApp._timeoutAdjustmentRequestCallback = function (req, res) {                         // 269
-  // this is really just req.socket.setTimeout(LONG_SOCKET_TIMEOUT);                     // 270
-  req.setTimeout(LONG_SOCKET_TIMEOUT);                                                   // 271
-  // Insert our new finish listener to run BEFORE the existing one which removes         // 272
-  // the response from the socket.                                                       // 273
-  var finishListeners = res.listeners('finish');                                         // 274
-  // XXX Apparently in Node 0.12 this event is now called 'prefinish'.                   // 275
-  // https://github.com/joyent/node/commit/7c9b6070                                      // 276
-  res.removeAllListeners('finish');                                                      // 277
-  res.on('finish', function () {                                                         // 278
-    res.setTimeout(SHORT_SOCKET_TIMEOUT);                                                // 279
-  });                                                                                    // 280
-  _.each(finishListeners, function (l) { res.on('finish', l); });                        // 281
-};                                                                                       // 282
-                                                                                         // 283
-                                                                                         // 284
-// Will be updated by main before we listen.                                             // 285
-// Map from client arch to boilerplate object.                                           // 286
-// Boilerplate object has:                                                               // 287
-//   - func: XXX                                                                         // 288
-//   - baseData: XXX                                                                     // 289
-var boilerplateByArch = {};                                                              // 290
-                                                                                         // 291
-// Given a request (as returned from `categorizeRequest`), return the                    // 292
-// boilerplate HTML to serve for that request. Memoizes on HTML                          // 293
-// attributes (used by, eg, appcache) and whether inline scripts are                     // 294
-// currently allowed.                                                                    // 295
-// XXX so far this function is always called with arch === 'web.browser'                 // 296
-var memoizedBoilerplate = {};                                                            // 297
-var getBoilerplate = function (request, arch) {                                          // 298
-                                                                                         // 299
-  var htmlAttributes = getHtmlAttributes(request);                                       // 300
+  var runtimeConfig = _.extend(                                                          // 262
+    _.clone(__meteor_runtime_config__),                                                  // 263
+    additionalOptions.runtimeConfigOverrides || {}                                       // 264
+  );                                                                                     // 265
+                                                                                         // 266
+  var jsCssPrefix;                                                                       // 267
+  if (arch === 'web.cordova') {                                                          // 268
+    // in cordova we serve assets up directly from disk so it doesn't make               // 269
+    // sense to use the prefix (ordinarily something like a CDN) and go out              // 270
+    // to the internet for those files.                                                  // 271
+    jsCssPrefix = '';                                                                    // 272
+  } else {                                                                               // 273
+    jsCssPrefix = bundledJsCssPrefix ||                                                  // 274
+      __meteor_runtime_config__.ROOT_URL_PATH_PREFIX || '';                              // 275
+  }                                                                                      // 276
+                                                                                         // 277
+  return new Boilerplate(arch, manifest,                                                 // 278
+    _.extend({                                                                           // 279
+      pathMapper: function (itemPath) {                                                  // 280
+        return path.join(archPath[arch], itemPath); },                                   // 281
+      baseDataExtension: {                                                               // 282
+        additionalStaticJs: _.map(                                                       // 283
+          additionalStaticJs || [],                                                      // 284
+          function (contents, pathname) {                                                // 285
+            return {                                                                     // 286
+              pathname: pathname,                                                        // 287
+              contents: contents                                                         // 288
+            };                                                                           // 289
+          }                                                                              // 290
+        ),                                                                               // 291
+        meteorRuntimeConfig: JSON.stringify(runtimeConfig),                              // 292
+        rootUrlPathPrefix: __meteor_runtime_config__.ROOT_URL_PATH_PREFIX || '',         // 293
+        bundledJsCssPrefix: jsCssPrefix,                                                 // 294
+        inlineScriptsAllowed: WebAppInternals.inlineScriptsAllowed(),                    // 295
+        inline: additionalOptions.inline                                                 // 296
+      }                                                                                  // 297
+    }, additionalOptions)                                                                // 298
+  );                                                                                     // 299
+};                                                                                       // 300
                                                                                          // 301
-  // The only thing that changes from request to request (for now) are                   // 302
-  // the HTML attributes (used by, eg, appcache) and whether inline                      // 303
-  // scripts are allowed, so we can memoize based on that.                               // 304
-  var memHash = JSON.stringify({                                                         // 305
-    inlineScriptsAllowed: inlineScriptsAllowed,                                          // 306
-    htmlAttributes: htmlAttributes,                                                      // 307
-    arch: arch                                                                           // 308
-  });                                                                                    // 309
+// A mapping from url path to "info". Where "info" has the following fields:             // 302
+// - type: the type of file to be served                                                 // 303
+// - cacheable: optionally, whether the file should be cached or not                     // 304
+// - sourceMapUrl: optionally, the url of the source map                                 // 305
+//                                                                                       // 306
+// Info also contains one of the following:                                              // 307
+// - content: the stringified content that should be served at this path                 // 308
+// - absolutePath: the absolute path on disk to the file                                 // 309
                                                                                          // 310
-  if (! memoizedBoilerplate[memHash]) {                                                  // 311
-    memoizedBoilerplate[memHash] = boilerplateByArch[arch].toHTML({                      // 312
-      htmlAttributes: htmlAttributes                                                     // 313
-    });                                                                                  // 314
-  }                                                                                      // 315
-  return memoizedBoilerplate[memHash];                                                   // 316
-};                                                                                       // 317
-                                                                                         // 318
-WebAppInternals.generateBoilerplateInstance = function (arch,                            // 319
-                                                        manifest,                        // 320
-                                                        additionalOptions) {             // 321
-  additionalOptions = additionalOptions || {};                                           // 322
-                                                                                         // 323
-  var runtimeConfig = _.extend(                                                          // 324
-    _.clone(__meteor_runtime_config__),                                                  // 325
-    additionalOptions.runtimeConfigOverrides || {}                                       // 326
-  );                                                                                     // 327
-                                                                                         // 328
-  return new Boilerplate(arch, manifest,                                                 // 329
-    _.extend({                                                                           // 330
-      pathMapper: function (itemPath) {                                                  // 331
-        return path.join(archPath[arch], itemPath); },                                   // 332
-      baseDataExtension: {                                                               // 333
-        additionalStaticJs: _.map(                                                       // 334
-          additionalStaticJs || [],                                                      // 335
-          function (contents, pathname) {                                                // 336
-            return {                                                                     // 337
-              pathname: pathname,                                                        // 338
-              contents: contents                                                         // 339
-            };                                                                           // 340
-          }                                                                              // 341
-        ),                                                                               // 342
-        meteorRuntimeConfig: JSON.stringify(runtimeConfig),                              // 343
-        rootUrlPathPrefix: __meteor_runtime_config__.ROOT_URL_PATH_PREFIX || '',         // 344
-        bundledJsCssPrefix: bundledJsCssPrefix ||                                        // 345
-          __meteor_runtime_config__.ROOT_URL_PATH_PREFIX || '',                          // 346
-        inlineScriptsAllowed: WebAppInternals.inlineScriptsAllowed(),                    // 347
-        inline: additionalOptions.inline                                                 // 348
-      }                                                                                  // 349
-    }, additionalOptions)                                                                // 350
-  );                                                                                     // 351
-};                                                                                       // 352
-                                                                                         // 353
-// A mapping from url path to "info". Where "info" has the following fields:             // 354
-// - type: the type of file to be served                                                 // 355
-// - cacheable: optionally, whether the file should be cached or not                     // 356
-// - sourceMapUrl: optionally, the url of the source map                                 // 357
-//                                                                                       // 358
-// Info also contains one of the following:                                              // 359
-// - content: the stringified content that should be served at this path                 // 360
-// - absolutePath: the absolute path on disk to the file                                 // 361
-                                                                                         // 362
-var staticFiles;                                                                         // 363
-                                                                                         // 364
-// Serve static files from the manifest or added with                                    // 365
-// `addStaticJs`. Exported for tests.                                                    // 366
-WebAppInternals.staticFilesMiddleware = function (staticFiles, req, res, next) {         // 367
-  if ('GET' != req.method && 'HEAD' != req.method) {                                     // 368
-    next();                                                                              // 369
-    return;                                                                              // 370
-  }                                                                                      // 371
-  var pathname = connect.utils.parseUrl(req).pathname;                                   // 372
-  try {                                                                                  // 373
-    pathname = decodeURIComponent(pathname);                                             // 374
-  } catch (e) {                                                                          // 375
-    next();                                                                              // 376
-    return;                                                                              // 377
-  }                                                                                      // 378
-                                                                                         // 379
-  var serveStaticJs = function (s) {                                                     // 380
-    res.writeHead(200, {                                                                 // 381
-      'Content-type': 'application/javascript; charset=UTF-8'                            // 382
-    });                                                                                  // 383
-    res.write(s);                                                                        // 384
-    res.end();                                                                           // 385
-  };                                                                                     // 386
-                                                                                         // 387
-  if (pathname === "/meteor_runtime_config.js" &&                                        // 388
-      ! WebAppInternals.inlineScriptsAllowed()) {                                        // 389
-    serveStaticJs("__meteor_runtime_config__ = " +                                       // 390
-                  JSON.stringify(__meteor_runtime_config__) + ";");                      // 391
-    return;                                                                              // 392
-  } else if (_.has(additionalStaticJs, pathname) &&                                      // 393
-              ! WebAppInternals.inlineScriptsAllowed()) {                                // 394
-    serveStaticJs(additionalStaticJs[pathname]);                                         // 395
-    return;                                                                              // 396
-  }                                                                                      // 397
-                                                                                         // 398
-  if (!_.has(staticFiles, pathname)) {                                                   // 399
-    next();                                                                              // 400
-    return;                                                                              // 401
-  }                                                                                      // 402
-                                                                                         // 403
-  // We don't need to call pause because, unlike 'static', once we call into             // 404
-  // 'send' and yield to the event loop, we never call another handler with              // 405
-  // 'next'.                                                                             // 406
-                                                                                         // 407
-  var info = staticFiles[pathname];                                                      // 408
-                                                                                         // 409
-  // Cacheable files are files that should never change. Typically                       // 410
-  // named by their hash (eg meteor bundled js and css files).                           // 411
-  // We cache them ~forever (1yr).                                                       // 412
-  //                                                                                     // 413
-  // We cache non-cacheable files anyway. This isn't really correct, as users            // 414
-  // can change the files and changes won't propagate immediately. However, if           // 415
-  // we don't cache them, browsers will 'flicker' when rerendering                       // 416
-  // images. Eventually we will probably want to rewrite URLs of static assets           // 417
-  // to include a query parameter to bust caches. That way we can both get               // 418
-  // good caching behavior and allow users to change assets without delay.               // 419
-  // https://github.com/meteor/meteor/issues/773                                         // 420
-  var maxAge = info.cacheable                                                            // 421
-        ? 1000 * 60 * 60 * 24 * 365                                                      // 422
-        : 1000 * 60 * 60 * 24;                                                           // 423
-                                                                                         // 424
-  // Set the X-SourceMap header, which current Chrome, FireFox, and Safari               // 425
-  // understand.  (The SourceMap header is slightly more spec-correct but FF             // 426
-  // doesn't understand it.)                                                             // 427
-  //                                                                                     // 428
-  // You may also need to enable source maps in Chrome: open dev tools, click            // 429
-  // the gear in the bottom right corner, and select "enable source maps".               // 430
-  if (info.sourceMapUrl) {                                                               // 431
-    res.setHeader('X-SourceMap',                                                         // 432
-                  __meteor_runtime_config__.ROOT_URL_PATH_PREFIX +                       // 433
-                  info.sourceMapUrl);                                                    // 434
-  }                                                                                      // 435
-                                                                                         // 436
-  if (info.type === "js") {                                                              // 437
-    res.setHeader("Content-Type", "application/javascript; charset=UTF-8");              // 438
-  } else if (info.type === "css") {                                                      // 439
-    res.setHeader("Content-Type", "text/css; charset=UTF-8");                            // 440
-  } else if (info.type === "json") {                                                     // 441
-    res.setHeader("Content-Type", "application/json; charset=UTF-8");                    // 442
-    // XXX if it is a manifest we are serving, set additional headers                    // 443
-    if (/\/manifest.json$/.test(pathname)) {                                             // 444
-      res.setHeader("Access-Control-Allow-Origin", "*");                                 // 445
-    }                                                                                    // 446
-  }                                                                                      // 447
+var staticFiles;                                                                         // 311
+                                                                                         // 312
+// Serve static files from the manifest or added with                                    // 313
+// `addStaticJs`. Exported for tests.                                                    // 314
+WebAppInternals.staticFilesMiddleware = function (staticFiles, req, res, next) {         // 315
+  if ('GET' != req.method && 'HEAD' != req.method) {                                     // 316
+    next();                                                                              // 317
+    return;                                                                              // 318
+  }                                                                                      // 319
+  var pathname = connect.utils.parseUrl(req).pathname;                                   // 320
+  try {                                                                                  // 321
+    pathname = decodeURIComponent(pathname);                                             // 322
+  } catch (e) {                                                                          // 323
+    next();                                                                              // 324
+    return;                                                                              // 325
+  }                                                                                      // 326
+                                                                                         // 327
+  var serveStaticJs = function (s) {                                                     // 328
+    res.writeHead(200, {                                                                 // 329
+      'Content-type': 'application/javascript; charset=UTF-8'                            // 330
+    });                                                                                  // 331
+    res.write(s);                                                                        // 332
+    res.end();                                                                           // 333
+  };                                                                                     // 334
+                                                                                         // 335
+  if (pathname === "/meteor_runtime_config.js" &&                                        // 336
+      ! WebAppInternals.inlineScriptsAllowed()) {                                        // 337
+    serveStaticJs("__meteor_runtime_config__ = " +                                       // 338
+                  JSON.stringify(__meteor_runtime_config__) + ";");                      // 339
+    return;                                                                              // 340
+  } else if (_.has(additionalStaticJs, pathname) &&                                      // 341
+              ! WebAppInternals.inlineScriptsAllowed()) {                                // 342
+    serveStaticJs(additionalStaticJs[pathname]);                                         // 343
+    return;                                                                              // 344
+  }                                                                                      // 345
+                                                                                         // 346
+  if (!_.has(staticFiles, pathname)) {                                                   // 347
+    next();                                                                              // 348
+    return;                                                                              // 349
+  }                                                                                      // 350
+                                                                                         // 351
+  // We don't need to call pause because, unlike 'static', once we call into             // 352
+  // 'send' and yield to the event loop, we never call another handler with              // 353
+  // 'next'.                                                                             // 354
+                                                                                         // 355
+  var info = staticFiles[pathname];                                                      // 356
+                                                                                         // 357
+  // Cacheable files are files that should never change. Typically                       // 358
+  // named by their hash (eg meteor bundled js and css files).                           // 359
+  // We cache them ~forever (1yr).                                                       // 360
+  //                                                                                     // 361
+  // We cache non-cacheable files anyway. This isn't really correct, as users            // 362
+  // can change the files and changes won't propagate immediately. However, if           // 363
+  // we don't cache them, browsers will 'flicker' when rerendering                       // 364
+  // images. Eventually we will probably want to rewrite URLs of static assets           // 365
+  // to include a query parameter to bust caches. That way we can both get               // 366
+  // good caching behavior and allow users to change assets without delay.               // 367
+  // https://github.com/meteor/meteor/issues/773                                         // 368
+  var maxAge = info.cacheable                                                            // 369
+        ? 1000 * 60 * 60 * 24 * 365                                                      // 370
+        : 1000 * 60 * 60 * 24;                                                           // 371
+                                                                                         // 372
+  // Set the X-SourceMap header, which current Chrome, FireFox, and Safari               // 373
+  // understand.  (The SourceMap header is slightly more spec-correct but FF             // 374
+  // doesn't understand it.)                                                             // 375
+  //                                                                                     // 376
+  // You may also need to enable source maps in Chrome: open dev tools, click            // 377
+  // the gear in the bottom right corner, and select "enable source maps".               // 378
+  if (info.sourceMapUrl) {                                                               // 379
+    res.setHeader('X-SourceMap',                                                         // 380
+                  __meteor_runtime_config__.ROOT_URL_PATH_PREFIX +                       // 381
+                  info.sourceMapUrl);                                                    // 382
+  }                                                                                      // 383
+                                                                                         // 384
+  if (info.type === "js") {                                                              // 385
+    res.setHeader("Content-Type", "application/javascript; charset=UTF-8");              // 386
+  } else if (info.type === "css") {                                                      // 387
+    res.setHeader("Content-Type", "text/css; charset=UTF-8");                            // 388
+  } else if (info.type === "json") {                                                     // 389
+    res.setHeader("Content-Type", "application/json; charset=UTF-8");                    // 390
+    // XXX if it is a manifest we are serving, set additional headers                    // 391
+    if (/\/manifest.json$/.test(pathname)) {                                             // 392
+      res.setHeader("Access-Control-Allow-Origin", "*");                                 // 393
+    }                                                                                    // 394
+  }                                                                                      // 395
+                                                                                         // 396
+  if (info.content) {                                                                    // 397
+    res.write(info.content);                                                             // 398
+    res.end();                                                                           // 399
+  } else {                                                                               // 400
+    send(req, info.absolutePath)                                                         // 401
+      .maxage(maxAge)                                                                    // 402
+      .hidden(true)  // if we specified a dotfile in the manifest, serve it              // 403
+      .on('error', function (err) {                                                      // 404
+        Log.error("Error serving static file " + err);                                   // 405
+        res.writeHead(500);                                                              // 406
+        res.end();                                                                       // 407
+      })                                                                                 // 408
+      .on('directory', function () {                                                     // 409
+        Log.error("Unexpected directory " + info.absolutePath);                          // 410
+        res.writeHead(500);                                                              // 411
+        res.end();                                                                       // 412
+      })                                                                                 // 413
+      .pipe(res);                                                                        // 414
+  }                                                                                      // 415
+};                                                                                       // 416
+                                                                                         // 417
+var getUrlPrefixForArch = function (arch) {                                              // 418
+  // XXX we rely on the fact that arch names don't contain slashes                       // 419
+  // in that case we would need to uri escape it                                         // 420
+                                                                                         // 421
+  // We add '__' to the beginning of non-standard archs to "scope" the url               // 422
+  // to Meteor internals.                                                                // 423
+  return arch === WebApp.defaultArch ?                                                   // 424
+    '' : '/' + '__' + arch.replace(/^web\./, '');                                        // 425
+};                                                                                       // 426
+                                                                                         // 427
+var runWebAppServer = function () {                                                      // 428
+  var shuttingDown = false;                                                              // 429
+  var syncQueue = new Meteor._SynchronousQueue();                                        // 430
+                                                                                         // 431
+  var getItemPathname = function (itemUrl) {                                             // 432
+    return decodeURIComponent(url.parse(itemUrl).pathname);                              // 433
+  };                                                                                     // 434
+                                                                                         // 435
+  WebAppInternals.reloadClientPrograms = function () {                                   // 436
+    syncQueue.runTask(function() {                                                       // 437
+      staticFiles = {};                                                                  // 438
+      var generateClientProgram = function (clientPath, arch) {                          // 439
+        // read the control for the client we'll be serving up                           // 440
+        var clientJsonPath = path.join(__meteor_bootstrap__.serverDir,                   // 441
+                                   clientPath);                                          // 442
+        var clientDir = path.dirname(clientJsonPath);                                    // 443
+        var clientJson = JSON.parse(readUtf8FileSync(clientJsonPath));                   // 444
+        if (clientJson.format !== "web-program-pre1")                                    // 445
+          throw new Error("Unsupported format for client assets: " +                     // 446
+                          JSON.stringify(clientJson.format));                            // 447
                                                                                          // 448
-  if (info.content) {                                                                    // 449
-    res.write(info.content);                                                             // 450
-    res.end();                                                                           // 451
-  } else {                                                                               // 452
-    send(req, info.absolutePath)                                                         // 453
-      .maxage(maxAge)                                                                    // 454
-      .hidden(true)  // if we specified a dotfile in the manifest, serve it              // 455
-      .on('error', function (err) {                                                      // 456
-        Log.error("Error serving static file " + err);                                   // 457
-        res.writeHead(500);                                                              // 458
-        res.end();                                                                       // 459
-      })                                                                                 // 460
-      .on('directory', function () {                                                     // 461
-        Log.error("Unexpected directory " + info.absolutePath);                          // 462
-        res.writeHead(500);                                                              // 463
-        res.end();                                                                       // 464
-      })                                                                                 // 465
-      .pipe(res);                                                                        // 466
-  }                                                                                      // 467
-};                                                                                       // 468
-                                                                                         // 469
-var getUrlPrefixForArch = function (arch) {                                              // 470
-  // XXX we rely on the fact that arch names don't contain slashes                       // 471
-  // in that case we would need to uri escape it                                         // 472
-                                                                                         // 473
-  // We add '__' to the beginning of non-standard archs to "scope" the url               // 474
-  // to Meteor internals.                                                                // 475
-  return arch === WebApp.defaultArch ?                                                   // 476
-    '' : '/' + '__' + arch.replace(/^web\./, '');                                        // 477
-};                                                                                       // 478
-                                                                                         // 479
-var runWebAppServer = function () {                                                      // 480
-  var shuttingDown = false;                                                              // 481
-  var syncQueue = new Meteor._SynchronousQueue();                                        // 482
-                                                                                         // 483
-  var getItemPathname = function (itemUrl) {                                             // 484
-    return decodeURIComponent(url.parse(itemUrl).pathname);                              // 485
-  };                                                                                     // 486
-                                                                                         // 487
-  WebAppInternals.reloadClientPrograms = function () {                                   // 488
-    syncQueue.runTask(function() {                                                       // 489
-      staticFiles = {};                                                                  // 490
-      var generateClientProgram = function (clientPath, arch) {                          // 491
-        // read the control for the client we'll be serving up                           // 492
-        var clientJsonPath = path.join(__meteor_bootstrap__.serverDir,                   // 493
-                                   clientPath);                                          // 494
-        var clientDir = path.dirname(clientJsonPath);                                    // 495
-        var clientJson = JSON.parse(readUtf8FileSync(clientJsonPath));                   // 496
-        if (clientJson.format !== "web-program-pre1")                                    // 497
-          throw new Error("Unsupported format for client assets: " +                     // 498
-                          JSON.stringify(clientJson.format));                            // 499
+        if (! clientJsonPath || ! clientDir || ! clientJson)                             // 449
+          throw new Error("Client config file not parsed.");                             // 450
+                                                                                         // 451
+        var urlPrefix = getUrlPrefixForArch(arch);                                       // 452
+                                                                                         // 453
+        var manifest = clientJson.manifest;                                              // 454
+        _.each(manifest, function (item) {                                               // 455
+          if (item.url && item.where === "client") {                                     // 456
+            staticFiles[urlPrefix + getItemPathname(item.url)] = {                       // 457
+              absolutePath: path.join(clientDir, item.path),                             // 458
+              cacheable: item.cacheable,                                                 // 459
+              // Link from source to its map                                             // 460
+              sourceMapUrl: item.sourceMapUrl,                                           // 461
+              type: item.type                                                            // 462
+            };                                                                           // 463
+                                                                                         // 464
+            if (item.sourceMap) {                                                        // 465
+              // Serve the source map too, under the specified URL. We assume all        // 466
+              // source maps are cacheable.                                              // 467
+              staticFiles[urlPrefix + getItemPathname(item.sourceMapUrl)] = {            // 468
+                absolutePath: path.join(clientDir, item.sourceMap),                      // 469
+                cacheable: true                                                          // 470
+              };                                                                         // 471
+            }                                                                            // 472
+          }                                                                              // 473
+        });                                                                              // 474
+                                                                                         // 475
+        var program = {                                                                  // 476
+          manifest: manifest,                                                            // 477
+          version: WebAppHashing.calculateClientHash(manifest, null, _.pick(             // 478
+            __meteor_runtime_config__, 'PUBLIC_SETTINGS')),                              // 479
+          PUBLIC_SETTINGS: __meteor_runtime_config__.PUBLIC_SETTINGS                     // 480
+        };                                                                               // 481
+                                                                                         // 482
+        WebApp.clientPrograms[arch] = program;                                           // 483
+                                                                                         // 484
+        // Serve the program as a string at /foo/<arch>/manifest.json                    // 485
+        // XXX change manifest.json -> program.json                                      // 486
+        staticFiles[path.join(urlPrefix, 'manifest.json')] = {                           // 487
+          content: JSON.stringify(program),                                              // 488
+          cacheable: true,                                                               // 489
+          type: "json"                                                                   // 490
+        };                                                                               // 491
+      };                                                                                 // 492
+                                                                                         // 493
+      try {                                                                              // 494
+        var clientPaths = __meteor_bootstrap__.configJson.clientPaths;                   // 495
+        _.each(clientPaths, function (clientPath, arch) {                                // 496
+          archPath[arch] = path.dirname(clientPath);                                     // 497
+          generateClientProgram(clientPath, arch);                                       // 498
+        });                                                                              // 499
                                                                                          // 500
-        if (! clientJsonPath || ! clientDir || ! clientJson)                             // 501
-          throw new Error("Client config file not parsed.");                             // 502
-                                                                                         // 503
-        var urlPrefix = getUrlPrefixForArch(arch);                                       // 504
-                                                                                         // 505
-        var manifest = clientJson.manifest;                                              // 506
-        _.each(manifest, function (item) {                                               // 507
-          if (item.url && item.where === "client") {                                     // 508
-            staticFiles[urlPrefix + getItemPathname(item.url)] = {                       // 509
-              absolutePath: path.join(clientDir, item.path),                             // 510
-              cacheable: item.cacheable,                                                 // 511
-              // Link from source to its map                                             // 512
-              sourceMapUrl: item.sourceMapUrl,                                           // 513
-              type: item.type                                                            // 514
-            };                                                                           // 515
-                                                                                         // 516
-            if (item.sourceMap) {                                                        // 517
-              // Serve the source map too, under the specified URL. We assume all        // 518
-              // source maps are cacheable.                                              // 519
-              staticFiles[urlPrefix + getItemPathname(item.sourceMapUrl)] = {            // 520
-                absolutePath: path.join(clientDir, item.sourceMap),                      // 521
-                cacheable: true                                                          // 522
-              };                                                                         // 523
-            }                                                                            // 524
-          }                                                                              // 525
-        });                                                                              // 526
-                                                                                         // 527
-        var program = {                                                                  // 528
-          manifest: manifest,                                                            // 529
-          version: WebAppHashing.calculateClientHash(manifest, null, _.pick(             // 530
-            __meteor_runtime_config__, 'PUBLIC_SETTINGS')),                              // 531
-          PUBLIC_SETTINGS: __meteor_runtime_config__.PUBLIC_SETTINGS                     // 532
-        };                                                                               // 533
-                                                                                         // 534
-        WebApp.clientPrograms[arch] = program;                                           // 535
-                                                                                         // 536
-        // Serve the program as a string at /foo/<arch>/manifest.json                    // 537
-        // XXX change manifest.json -> program.json                                      // 538
-        staticFiles[path.join(urlPrefix, 'manifest.json')] = {                           // 539
-          content: JSON.stringify(program),                                              // 540
-          cacheable: true,                                                               // 541
-          type: "json"                                                                   // 542
-        };                                                                               // 543
-      };                                                                                 // 544
-                                                                                         // 545
-      try {                                                                              // 546
-        var clientPaths = __meteor_bootstrap__.configJson.clientPaths;                   // 547
-        _.each(clientPaths, function (clientPath, arch) {                                // 548
-          archPath[arch] = path.dirname(clientPath);                                     // 549
-          generateClientProgram(clientPath, arch);                                       // 550
-        });                                                                              // 551
-                                                                                         // 552
-        // Exported for tests.                                                           // 553
-        WebAppInternals.staticFiles = staticFiles;                                       // 554
-      } catch (e) {                                                                      // 555
-        Log.error("Error reloading the client program: " + e.stack);                     // 556
-        process.exit(1);                                                                 // 557
-      }                                                                                  // 558
-    });                                                                                  // 559
-  };                                                                                     // 560
-                                                                                         // 561
-  WebAppInternals.generateBoilerplate = function () {                                    // 562
-    // This boilerplate will be served to the mobile devices when used with              // 563
-    // Meteor/Cordova for the Hot-Code Push and since the file will be served by         // 564
-    // the device's server, it is important to set the DDP url to the actual             // 565
-    // Meteor server accepting DDP connections and not the device's file server.         // 566
-    var defaultOptionsForArch = {                                                        // 567
-      'web.cordova': {                                                                   // 568
-        runtimeConfigOverrides: {                                                        // 569
-          // XXX We use absoluteUrl() here so that we serve https://                     // 570
-          // URLs to cordova clients if force-ssl is in use. If we were                  // 571
-          // to use __meteor_runtime_config__.ROOT_URL instead of                        // 572
-          // absoluteUrl(), then Cordova clients would immediately get a                 // 573
-          // HCP setting their DDP_DEFAULT_CONNECTION_URL to                             // 574
-          // http://example.meteor.com. This breaks the app, because                     // 575
-          // force-ssl doesn't serve CORS headers on 302                                 // 576
-          // redirects. (Plus it's undesirable to have clients                           // 577
-          // connecting to http://example.meteor.com when force-ssl is                   // 578
-          // in use.)                                                                    // 579
-          DDP_DEFAULT_CONNECTION_URL: process.env.MOBILE_DDP_URL ||                      // 580
-            Meteor.absoluteUrl(),                                                        // 581
-          ROOT_URL: process.env.MOBILE_ROOT_URL ||                                       // 582
-            Meteor.absoluteUrl()                                                         // 583
-        }                                                                                // 584
-      }                                                                                  // 585
-    };                                                                                   // 586
-                                                                                         // 587
-    syncQueue.runTask(function() {                                                       // 588
-      _.each(WebApp.clientPrograms, function (program, archName) {                       // 589
-        boilerplateByArch[archName] =                                                    // 590
-          WebAppInternals.generateBoilerplateInstance(                                   // 591
-            archName, program.manifest,                                                  // 592
-            defaultOptionsForArch[archName]);                                            // 593
-      });                                                                                // 594
-                                                                                         // 595
-      // Clear the memoized boilerplate cache.                                           // 596
-      memoizedBoilerplate = {};                                                          // 597
-                                                                                         // 598
-      // Configure CSS injection for the default arch                                    // 599
-      // XXX implement the CSS injection for all archs?                                  // 600
-      WebAppInternals.refreshableAssets = {                                              // 601
-        allCss: boilerplateByArch[WebApp.defaultArch].baseData.css                       // 602
-      };                                                                                 // 603
-    });                                                                                  // 604
-  };                                                                                     // 605
+        // Exported for tests.                                                           // 501
+        WebAppInternals.staticFiles = staticFiles;                                       // 502
+      } catch (e) {                                                                      // 503
+        Log.error("Error reloading the client program: " + e.stack);                     // 504
+        process.exit(1);                                                                 // 505
+      }                                                                                  // 506
+    });                                                                                  // 507
+  };                                                                                     // 508
+                                                                                         // 509
+  WebAppInternals.generateBoilerplate = function () {                                    // 510
+    // This boilerplate will be served to the mobile devices when used with              // 511
+    // Meteor/Cordova for the Hot-Code Push and since the file will be served by         // 512
+    // the device's server, it is important to set the DDP url to the actual             // 513
+    // Meteor server accepting DDP connections and not the device's file server.         // 514
+    var defaultOptionsForArch = {                                                        // 515
+      'web.cordova': {                                                                   // 516
+        runtimeConfigOverrides: {                                                        // 517
+          // XXX We use absoluteUrl() here so that we serve https://                     // 518
+          // URLs to cordova clients if force-ssl is in use. If we were                  // 519
+          // to use __meteor_runtime_config__.ROOT_URL instead of                        // 520
+          // absoluteUrl(), then Cordova clients would immediately get a                 // 521
+          // HCP setting their DDP_DEFAULT_CONNECTION_URL to                             // 522
+          // http://example.meteor.com. This breaks the app, because                     // 523
+          // force-ssl doesn't serve CORS headers on 302                                 // 524
+          // redirects. (Plus it's undesirable to have clients                           // 525
+          // connecting to http://example.meteor.com when force-ssl is                   // 526
+          // in use.)                                                                    // 527
+          DDP_DEFAULT_CONNECTION_URL: process.env.MOBILE_DDP_URL ||                      // 528
+            Meteor.absoluteUrl(),                                                        // 529
+          ROOT_URL: process.env.MOBILE_ROOT_URL ||                                       // 530
+            Meteor.absoluteUrl()                                                         // 531
+        }                                                                                // 532
+      }                                                                                  // 533
+    };                                                                                   // 534
+                                                                                         // 535
+    syncQueue.runTask(function() {                                                       // 536
+      _.each(WebApp.clientPrograms, function (program, archName) {                       // 537
+        boilerplateByArch[archName] =                                                    // 538
+          WebAppInternals.generateBoilerplateInstance(                                   // 539
+            archName, program.manifest,                                                  // 540
+            defaultOptionsForArch[archName]);                                            // 541
+      });                                                                                // 542
+                                                                                         // 543
+      // Clear the memoized boilerplate cache.                                           // 544
+      memoizedBoilerplate = {};                                                          // 545
+                                                                                         // 546
+      // Configure CSS injection for the default arch                                    // 547
+      // XXX implement the CSS injection for all archs?                                  // 548
+      WebAppInternals.refreshableAssets = {                                              // 549
+        allCss: boilerplateByArch[WebApp.defaultArch].baseData.css                       // 550
+      };                                                                                 // 551
+    });                                                                                  // 552
+  };                                                                                     // 553
+                                                                                         // 554
+  WebAppInternals.reloadClientPrograms();                                                // 555
+                                                                                         // 556
+  // webserver                                                                           // 557
+  var app = connect();                                                                   // 558
+                                                                                         // 559
+  // Auto-compress any json, javascript, or text.                                        // 560
+  app.use(connect.compress());                                                           // 561
+                                                                                         // 562
+  // Packages and apps can add handlers that run before any other Meteor                 // 563
+  // handlers via WebApp.rawConnectHandlers.                                             // 564
+  var rawConnectHandlers = connect();                                                    // 565
+  app.use(rawConnectHandlers);                                                           // 566
+                                                                                         // 567
+  // We're not a proxy; reject (without crashing) attempts to treat us like              // 568
+  // one. (See #1212.)                                                                   // 569
+  app.use(function(req, res, next) {                                                     // 570
+    if (RoutePolicy.isValidUrl(req.url)) {                                               // 571
+      next();                                                                            // 572
+      return;                                                                            // 573
+    }                                                                                    // 574
+    res.writeHead(400);                                                                  // 575
+    res.write("Not a proxy");                                                            // 576
+    res.end();                                                                           // 577
+  });                                                                                    // 578
+                                                                                         // 579
+  // Strip off the path prefix, if it exists.                                            // 580
+  app.use(function (request, response, next) {                                           // 581
+    var pathPrefix = __meteor_runtime_config__.ROOT_URL_PATH_PREFIX;                     // 582
+    var url = Npm.require('url').parse(request.url);                                     // 583
+    var pathname = url.pathname;                                                         // 584
+    // check if the path in the url starts with the path prefix (and the part            // 585
+    // after the path prefix must start with a / if it exists.)                          // 586
+    if (pathPrefix && pathname.substring(0, pathPrefix.length) === pathPrefix &&         // 587
+       (pathname.length == pathPrefix.length                                             // 588
+        || pathname.substring(pathPrefix.length, pathPrefix.length + 1) === "/")) {      // 589
+      request.url = request.url.substring(pathPrefix.length);                            // 590
+      next();                                                                            // 591
+    } else if (pathname === "/favicon.ico" || pathname === "/robots.txt") {              // 592
+      next();                                                                            // 593
+    } else if (pathPrefix) {                                                             // 594
+      response.writeHead(404);                                                           // 595
+      response.write("Unknown path");                                                    // 596
+      response.end();                                                                    // 597
+    } else {                                                                             // 598
+      next();                                                                            // 599
+    }                                                                                    // 600
+  });                                                                                    // 601
+                                                                                         // 602
+  // Parse the query string into res.query. Used by oauth_server, but it's               // 603
+  // generally pretty handy..                                                            // 604
+  app.use(connect.query());                                                              // 605
                                                                                          // 606
-  WebAppInternals.reloadClientPrograms();                                                // 607
-                                                                                         // 608
-  // webserver                                                                           // 609
-  var app = connect();                                                                   // 610
-                                                                                         // 611
-  // Auto-compress any json, javascript, or text.                                        // 612
-  app.use(connect.compress());                                                           // 613
+  // Serve static files from the manifest.                                               // 607
+  // This is inspired by the 'static' middleware.                                        // 608
+  app.use(function (req, res, next) {                                                    // 609
+    Fiber(function () {                                                                  // 610
+     WebAppInternals.staticFilesMiddleware(staticFiles, req, res, next);                 // 611
+    }).run();                                                                            // 612
+  });                                                                                    // 613
                                                                                          // 614
-  // Packages and apps can add handlers that run before any other Meteor                 // 615
-  // handlers via WebApp.rawConnectHandlers.                                             // 616
-  var rawConnectHandlers = connect();                                                    // 617
-  app.use(rawConnectHandlers);                                                           // 618
+  // Packages and apps can add handlers to this via WebApp.connectHandlers.              // 615
+  // They are inserted before our default handler.                                       // 616
+  var packageAndAppHandlers = connect();                                                 // 617
+  app.use(packageAndAppHandlers);                                                        // 618
                                                                                          // 619
-  // Strip off the path prefix, if it exists.                                            // 620
-  app.use(function (request, response, next) {                                           // 621
-    var pathPrefix = __meteor_runtime_config__.ROOT_URL_PATH_PREFIX;                     // 622
-    var url = Npm.require('url').parse(request.url);                                     // 623
-    var pathname = url.pathname;                                                         // 624
-    // check if the path in the url starts with the path prefix (and the part            // 625
-    // after the path prefix must start with a / if it exists.)                          // 626
-    if (pathPrefix && pathname.substring(0, pathPrefix.length) === pathPrefix &&         // 627
-       (pathname.length == pathPrefix.length                                             // 628
-        || pathname.substring(pathPrefix.length, pathPrefix.length + 1) === "/")) {      // 629
-      request.url = request.url.substring(pathPrefix.length);                            // 630
-      next();                                                                            // 631
-    } else if (pathname === "/favicon.ico" || pathname === "/robots.txt") {              // 632
-      next();                                                                            // 633
-    } else if (pathPrefix) {                                                             // 634
-      response.writeHead(404);                                                           // 635
-      response.write("Unknown path");                                                    // 636
-      response.end();                                                                    // 637
-    } else {                                                                             // 638
-      next();                                                                            // 639
-    }                                                                                    // 640
-  });                                                                                    // 641
+  var suppressConnectErrors = false;                                                     // 620
+  // connect knows it is an error handler because it has 4 arguments instead of          // 621
+  // 3. go figure.  (It is not smart enough to find such a thing if it's hidden          // 622
+  // inside packageAndAppHandlers.)                                                      // 623
+  app.use(function (err, req, res, next) {                                               // 624
+    if (!err || !suppressConnectErrors || !req.headers['x-suppress-error']) {            // 625
+      next(err);                                                                         // 626
+      return;                                                                            // 627
+    }                                                                                    // 628
+    res.writeHead(err.status, { 'Content-Type': 'text/plain' });                         // 629
+    res.end("An error message");                                                         // 630
+  });                                                                                    // 631
+                                                                                         // 632
+  app.use(function (req, res, next) {                                                    // 633
+    if (! appUrl(req.url))                                                               // 634
+      return next();                                                                     // 635
+                                                                                         // 636
+    var headers = {                                                                      // 637
+      'Content-Type':  'text/html; charset=utf-8'                                        // 638
+    };                                                                                   // 639
+    if (shuttingDown)                                                                    // 640
+      headers['Connection'] = 'Close';                                                   // 641
                                                                                          // 642
-  // Parse the query string into res.query. Used by oauth_server, but it's               // 643
-  // generally pretty handy..                                                            // 644
-  app.use(connect.query());                                                              // 645
-                                                                                         // 646
-  // Serve static files from the manifest.                                               // 647
-  // This is inspired by the 'static' middleware.                                        // 648
-  app.use(function (req, res, next) {                                                    // 649
-    Fiber(function () {                                                                  // 650
-     WebAppInternals.staticFilesMiddleware(staticFiles, req, res, next);                 // 651
-    }).run();                                                                            // 652
-  });                                                                                    // 653
-                                                                                         // 654
-  // Packages and apps can add handlers to this via WebApp.connectHandlers.              // 655
-  // They are inserted before our default handler.                                       // 656
-  var packageAndAppHandlers = connect();                                                 // 657
-  app.use(packageAndAppHandlers);                                                        // 658
-                                                                                         // 659
-  var suppressConnectErrors = false;                                                     // 660
-  // connect knows it is an error handler because it has 4 arguments instead of          // 661
-  // 3. go figure.  (It is not smart enough to find such a thing if it's hidden          // 662
-  // inside packageAndAppHandlers.)                                                      // 663
-  app.use(function (err, req, res, next) {                                               // 664
-    if (!err || !suppressConnectErrors || !req.headers['x-suppress-error']) {            // 665
-      next(err);                                                                         // 666
-      return;                                                                            // 667
-    }                                                                                    // 668
-    res.writeHead(err.status, { 'Content-Type': 'text/plain' });                         // 669
-    res.end("An error message");                                                         // 670
-  });                                                                                    // 671
-                                                                                         // 672
-  app.use(function (req, res, next) {                                                    // 673
-    if (! appUrl(req.url))                                                               // 674
-      return next();                                                                     // 675
+    var request = WebApp.categorizeRequest(req);                                         // 643
+                                                                                         // 644
+    if (request.url.query && request.url.query['meteor_css_resource']) {                 // 645
+      // In this case, we're requesting a CSS resource in the meteor-specific            // 646
+      // way, but we don't have it.  Serve a static css file that indicates that         // 647
+      // we didn't have it, so we can detect that and refresh.                           // 648
+      headers['Content-Type'] = 'text/css; charset=utf-8';                               // 649
+      res.writeHead(200, headers);                                                       // 650
+      res.write(".meteor-css-not-found-error { width: 0px;}");                           // 651
+      res.end();                                                                         // 652
+      return undefined;                                                                  // 653
+    }                                                                                    // 654
+                                                                                         // 655
+    // /packages/asdfsad ... /__cordova/dafsdf.js                                        // 656
+    var pathname = connect.utils.parseUrl(req).pathname;                                 // 657
+    var archKey = pathname.split('/')[1];                                                // 658
+    var archKeyCleaned = 'web.' + archKey.replace(/^__/, '');                            // 659
+                                                                                         // 660
+    if (! /^__/.test(archKey) || ! _.has(archPath, archKeyCleaned)) {                    // 661
+      archKey = WebApp.defaultArch;                                                      // 662
+    } else {                                                                             // 663
+      archKey = archKeyCleaned;                                                          // 664
+    }                                                                                    // 665
+                                                                                         // 666
+    var boilerplate;                                                                     // 667
+    try {                                                                                // 668
+      boilerplate = getBoilerplate(request, archKey);                                    // 669
+    } catch (e) {                                                                        // 670
+      Log.error("Error running template: " + e);                                         // 671
+      res.writeHead(500, headers);                                                       // 672
+      res.end();                                                                         // 673
+      return undefined;                                                                  // 674
+    }                                                                                    // 675
                                                                                          // 676
-    var headers = {                                                                      // 677
-      'Content-Type':  'text/html; charset=utf-8'                                        // 678
-    };                                                                                   // 679
-    if (shuttingDown)                                                                    // 680
-      headers['Connection'] = 'Close';                                                   // 681
+    res.writeHead(200, headers);                                                         // 677
+    res.write(boilerplate);                                                              // 678
+    res.end();                                                                           // 679
+    return undefined;                                                                    // 680
+  });                                                                                    // 681
                                                                                          // 682
-    var request = WebApp.categorizeRequest(req);                                         // 683
-                                                                                         // 684
-    if (request.url.query && request.url.query['meteor_css_resource']) {                 // 685
-      // In this case, we're requesting a CSS resource in the meteor-specific            // 686
-      // way, but we don't have it.  Serve a static css file that indicates that         // 687
-      // we didn't have it, so we can detect that and refresh.                           // 688
-      headers['Content-Type'] = 'text/css; charset=utf-8';                               // 689
-      res.writeHead(200, headers);                                                       // 690
-      res.write(".meteor-css-not-found-error { width: 0px;}");                           // 691
-      res.end();                                                                         // 692
-      return undefined;                                                                  // 693
-    }                                                                                    // 694
-                                                                                         // 695
-    // /packages/asdfsad ... /__cordova/dafsdf.js                                        // 696
-    var pathname = connect.utils.parseUrl(req).pathname;                                 // 697
-    var archKey = pathname.split('/')[1];                                                // 698
-    var archKeyCleaned = 'web.' + archKey.replace(/^__/, '');                            // 699
-                                                                                         // 700
-    if (! /^__/.test(archKey) || ! _.has(archPath, archKeyCleaned)) {                    // 701
-      archKey = WebApp.defaultArch;                                                      // 702
-    } else {                                                                             // 703
-      archKey = archKeyCleaned;                                                          // 704
-    }                                                                                    // 705
-                                                                                         // 706
-    var boilerplate;                                                                     // 707
-    try {                                                                                // 708
-      boilerplate = getBoilerplate(request, archKey);                                    // 709
-    } catch (e) {                                                                        // 710
-      Log.error("Error running template: " + e);                                         // 711
-      res.writeHead(500, headers);                                                       // 712
-      res.end();                                                                         // 713
-      return undefined;                                                                  // 714
-    }                                                                                    // 715
-                                                                                         // 716
-    res.writeHead(200, headers);                                                         // 717
-    res.write(boilerplate);                                                              // 718
-    res.end();                                                                           // 719
-    return undefined;                                                                    // 720
-  });                                                                                    // 721
-                                                                                         // 722
-  // Return 404 by default, if no other handlers serve this URL.                         // 723
-  app.use(function (req, res) {                                                          // 724
-    res.writeHead(404);                                                                  // 725
-    res.end();                                                                           // 726
-  });                                                                                    // 727
-                                                                                         // 728
-                                                                                         // 729
-  var httpServer = http.createServer(app);                                               // 730
-  var onListeningCallbacks = [];                                                         // 731
-                                                                                         // 732
-  // After 5 seconds w/o data on a socket, kill it.  On the other hand, if               // 733
-  // there's an outstanding request, give it a higher timeout instead (to avoid          // 734
-  // killing long-polling requests)                                                      // 735
-  httpServer.setTimeout(SHORT_SOCKET_TIMEOUT);                                           // 736
-                                                                                         // 737
-  // Do this here, and then also in livedata/stream_server.js, because                   // 738
-  // stream_server.js kills all the current request handlers when installing its         // 739
-  // own.                                                                                // 740
-  httpServer.on('request', WebApp._timeoutAdjustmentRequestCallback);                    // 741
-                                                                                         // 742
-                                                                                         // 743
-  // For now, handle SIGHUP here.  Later, this should be in some centralized             // 744
-  // Meteor shutdown code.                                                               // 745
-  process.on('SIGHUP', Meteor.bindEnvironment(function () {                              // 746
-    shuttingDown = true;                                                                 // 747
-    // tell others with websockets open that we plan to close this.                      // 748
-    // XXX: Eventually, this should be done with a standard meteor shut-down             // 749
-    // logic path.                                                                       // 750
-    httpServer.emit('meteor-closing');                                                   // 751
-                                                                                         // 752
-    httpServer.close(Meteor.bindEnvironment(function () {                                // 753
-      if (proxy) {                                                                       // 754
-        try {                                                                            // 755
-          proxy.call('removeBindingsForJob', process.env.GALAXY_JOB);                    // 756
-        } catch (e) {                                                                    // 757
-          Log.error("Error removing bindings: " + e.message);                            // 758
-          process.exit(1);                                                               // 759
-        }                                                                                // 760
-      }                                                                                  // 761
-      process.exit(0);                                                                   // 762
-                                                                                         // 763
-    }, "On http server close failed"));                                                  // 764
+  // Return 404 by default, if no other handlers serve this URL.                         // 683
+  app.use(function (req, res) {                                                          // 684
+    res.writeHead(404);                                                                  // 685
+    res.end();                                                                           // 686
+  });                                                                                    // 687
+                                                                                         // 688
+                                                                                         // 689
+  var httpServer = http.createServer(app);                                               // 690
+  var onListeningCallbacks = [];                                                         // 691
+                                                                                         // 692
+  // After 5 seconds w/o data on a socket, kill it.  On the other hand, if               // 693
+  // there's an outstanding request, give it a higher timeout instead (to avoid          // 694
+  // killing long-polling requests)                                                      // 695
+  httpServer.setTimeout(SHORT_SOCKET_TIMEOUT);                                           // 696
+                                                                                         // 697
+  // Do this here, and then also in livedata/stream_server.js, because                   // 698
+  // stream_server.js kills all the current request handlers when installing its         // 699
+  // own.                                                                                // 700
+  httpServer.on('request', WebApp._timeoutAdjustmentRequestCallback);                    // 701
+                                                                                         // 702
+                                                                                         // 703
+  // For now, handle SIGHUP here.  Later, this should be in some centralized             // 704
+  // Meteor shutdown code.                                                               // 705
+  process.on('SIGHUP', Meteor.bindEnvironment(function () {                              // 706
+    shuttingDown = true;                                                                 // 707
+    // tell others with websockets open that we plan to close this.                      // 708
+    // XXX: Eventually, this should be done with a standard meteor shut-down             // 709
+    // logic path.                                                                       // 710
+    httpServer.emit('meteor-closing');                                                   // 711
+                                                                                         // 712
+    httpServer.close(Meteor.bindEnvironment(function () {                                // 713
+      if (proxy) {                                                                       // 714
+        try {                                                                            // 715
+          proxy.call('removeBindingsForJob', process.env.GALAXY_JOB);                    // 716
+        } catch (e) {                                                                    // 717
+          Log.error("Error removing bindings: " + e.message);                            // 718
+          process.exit(1);                                                               // 719
+        }                                                                                // 720
+      }                                                                                  // 721
+      process.exit(0);                                                                   // 722
+                                                                                         // 723
+    }, "On http server close failed"));                                                  // 724
+                                                                                         // 725
+    // Ideally we will close before this hits.                                           // 726
+    Meteor.setTimeout(function () {                                                      // 727
+      Log.warn("Closed by SIGHUP but one or more HTTP requests may not have finished."); // 728
+      process.exit(1);                                                                   // 729
+    }, 5000);                                                                            // 730
+                                                                                         // 731
+  }, function (err) {                                                                    // 732
+    console.log(err);                                                                    // 733
+    process.exit(1);                                                                     // 734
+  }));                                                                                   // 735
+                                                                                         // 736
+  // start up app                                                                        // 737
+  _.extend(WebApp, {                                                                     // 738
+    connectHandlers: packageAndAppHandlers,                                              // 739
+    rawConnectHandlers: rawConnectHandlers,                                              // 740
+    httpServer: httpServer,                                                              // 741
+    // For testing.                                                                      // 742
+    suppressConnectErrors: function () {                                                 // 743
+      suppressConnectErrors = true;                                                      // 744
+    },                                                                                   // 745
+    onListening: function (f) {                                                          // 746
+      if (onListeningCallbacks)                                                          // 747
+        onListeningCallbacks.push(f);                                                    // 748
+      else                                                                               // 749
+        f();                                                                             // 750
+    },                                                                                   // 751
+    // Hack: allow http tests to call connect.basicAuth without making them              // 752
+    // Npm.depends on another copy of connect. (That would be fine if we could           // 753
+    // have test-only NPM dependencies but is overkill here.)                            // 754
+    __basicAuth__: connect.basicAuth                                                     // 755
+  });                                                                                    // 756
+                                                                                         // 757
+  // Let the rest of the packages (and Meteor.startup hooks) insert connect              // 758
+  // middlewares and update __meteor_runtime_config__, then keep going to set up         // 759
+  // actually serving HTML.                                                              // 760
+  main = function (argv) {                                                               // 761
+    // main happens post startup hooks, so we don't need a Meteor.startup() to           // 762
+    // ensure this happens after the galaxy package is loaded.                           // 763
+    var AppConfig = Package["application-configuration"].AppConfig;                      // 764
                                                                                          // 765
-    // Ideally we will close before this hits.                                           // 766
-    Meteor.setTimeout(function () {                                                      // 767
-      Log.warn("Closed by SIGHUP but one or more HTTP requests may not have finished."); // 768
-      process.exit(1);                                                                   // 769
-    }, 5000);                                                                            // 770
-                                                                                         // 771
-  }, function (err) {                                                                    // 772
-    console.log(err);                                                                    // 773
-    process.exit(1);                                                                     // 774
-  }));                                                                                   // 775
+    WebAppInternals.generateBoilerplate();                                               // 766
+                                                                                         // 767
+    // only start listening after all the startup code has run.                          // 768
+    var localPort = parseInt(process.env.PORT) || 0;                                     // 769
+    var host = process.env.BIND_IP;                                                      // 770
+    var localIp = host || '0.0.0.0';                                                     // 771
+    httpServer.listen(localPort, localIp, Meteor.bindEnvironment(function() {            // 772
+      if (process.env.METEOR_PRINT_ON_LISTEN)                                            // 773
+        console.log("LISTENING"); // must match run-app.js                               // 774
+      var proxyBinding;                                                                  // 775
                                                                                          // 776
-  // start up app                                                                        // 777
-  _.extend(WebApp, {                                                                     // 778
-    connectHandlers: packageAndAppHandlers,                                              // 779
-    rawConnectHandlers: rawConnectHandlers,                                              // 780
-    httpServer: httpServer,                                                              // 781
-    // For testing.                                                                      // 782
-    suppressConnectErrors: function () {                                                 // 783
-      suppressConnectErrors = true;                                                      // 784
-    },                                                                                   // 785
-    onListening: function (f) {                                                          // 786
-      if (onListeningCallbacks)                                                          // 787
-        onListeningCallbacks.push(f);                                                    // 788
-      else                                                                               // 789
-        f();                                                                             // 790
-    },                                                                                   // 791
-    // Hack: allow http tests to call connect.basicAuth without making them              // 792
-    // Npm.depends on another copy of connect. (That would be fine if we could           // 793
-    // have test-only NPM dependencies but is overkill here.)                            // 794
-    __basicAuth__: connect.basicAuth                                                     // 795
-  });                                                                                    // 796
-                                                                                         // 797
-  // Let the rest of the packages (and Meteor.startup hooks) insert connect              // 798
-  // middlewares and update __meteor_runtime_config__, then keep going to set up         // 799
-  // actually serving HTML.                                                              // 800
-  main = function (argv) {                                                               // 801
-    // main happens post startup hooks, so we don't need a Meteor.startup() to           // 802
-    // ensure this happens after the galaxy package is loaded.                           // 803
-    var AppConfig = Package["application-configuration"].AppConfig;                      // 804
-    // We used to use the optimist npm package to parse argv here, but it's              // 805
-    // overkill (and no longer in the dev bundle). Just assume any instance of           // 806
-    // '--keepalive' is a use of the option.                                             // 807
-    // XXX COMPAT WITH 0.9.2.2                                                           // 808
-    // We used to expect keepalives to be written to stdin every few                     // 809
-    // seconds; now we just check if the parent process is still alive                   // 810
-    // every few seconds.                                                                // 811
-    var expectKeepalives = _.contains(argv, '--keepalive');                              // 812
-    // XXX Saddest argument parsing ever, should we add optimist back to                 // 813
-    // the dev bundle?                                                                   // 814
-    var parentPid = null;                                                                // 815
-    var parentPidIndex = _.indexOf(argv, "--parent-pid");                                // 816
-    if (parentPidIndex !== -1) {                                                         // 817
-      parentPid = argv[parentPidIndex + 1];                                              // 818
-    }                                                                                    // 819
-    WebAppInternals.generateBoilerplate();                                               // 820
-                                                                                         // 821
-    // only start listening after all the startup code has run.                          // 822
-    var localPort = parseInt(process.env.PORT) || 0;                                     // 823
-    var host = process.env.BIND_IP;                                                      // 824
-    var localIp = host || '0.0.0.0';                                                     // 825
-    httpServer.listen(localPort, localIp, Meteor.bindEnvironment(function() {            // 826
-      if (expectKeepalives || parentPid)                                                 // 827
-        console.log("LISTENING"); // must match run-app.js                               // 828
-      var proxyBinding;                                                                  // 829
-                                                                                         // 830
-      AppConfig.configurePackage('webapp', function (configuration) {                    // 831
-        if (proxyBinding)                                                                // 832
-          proxyBinding.stop();                                                           // 833
-        if (configuration && configuration.proxy) {                                      // 834
-          // TODO: We got rid of the place where this checks the app's                   // 835
-          // configuration, because this wants to be configured for some things          // 836
-          // on a per-job basis.  Discuss w/ teammates.                                  // 837
-          proxyBinding = AppConfig.configureService(                                     // 838
-            "proxy",                                                                     // 839
-            "pre0",                                                                      // 840
-            function (proxyService) {                                                    // 841
-              if (proxyService && ! _.isEmpty(proxyService)) {                           // 842
-                var proxyConf;                                                           // 843
-                // XXX Figure out a per-job way to specify bind location                 // 844
-                // (besides hardcoding the location for ADMIN_APP jobs).                 // 845
-                if (process.env.ADMIN_APP) {                                             // 846
-                  var bindPathPrefix = "";                                               // 847
-                  if (process.env.GALAXY_APP !== "panel") {                              // 848
-                    bindPathPrefix = "/" + bindPathPrefix +                              // 849
-                      encodeURIComponent(                                                // 850
-                        process.env.GALAXY_APP                                           // 851
-                      ).replace(/\./g, '_');                                             // 852
-                  }                                                                      // 853
-                  proxyConf = {                                                          // 854
-                    bindHost: process.env.GALAXY_NAME,                                   // 855
-                    bindPathPrefix: bindPathPrefix,                                      // 856
-                    requiresAuth: true                                                   // 857
-                  };                                                                     // 858
-                } else {                                                                 // 859
-                  proxyConf = configuration.proxy;                                       // 860
-                }                                                                        // 861
-                Log("Attempting to bind to proxy at " +                                  // 862
-                    proxyService);                                                       // 863
-                WebAppInternals.bindToProxy(_.extend({                                   // 864
-                  proxyEndpoint: proxyService                                            // 865
-                }, proxyConf));                                                          // 866
-              }                                                                          // 867
-            }                                                                            // 868
-          );                                                                             // 869
-        }                                                                                // 870
-      });                                                                                // 871
-                                                                                         // 872
-      var callbacks = onListeningCallbacks;                                              // 873
-      onListeningCallbacks = null;                                                       // 874
-      _.each(callbacks, function (x) { x(); });                                          // 875
-                                                                                         // 876
-    }, function (e) {                                                                    // 877
-      console.error("Error listening:", e);                                              // 878
-      console.error(e && e.stack);                                                       // 879
-    }));                                                                                 // 880
-                                                                                         // 881
-    if (expectKeepalives) {                                                              // 882
-      initKeepalive();                                                                   // 883
-    }                                                                                    // 884
-    if (parentPid) {                                                                     // 885
-      startCheckForLiveParent(parentPid);                                                // 886
-    }                                                                                    // 887
-    return 'DAEMON';                                                                     // 888
-  };                                                                                     // 889
-};                                                                                       // 890
-                                                                                         // 891
-                                                                                         // 892
-var proxy;                                                                               // 893
-WebAppInternals.bindToProxy = function (proxyConfig) {                                   // 894
-  var securePort = proxyConfig.securePort || 4433;                                       // 895
-  var insecurePort = proxyConfig.insecurePort || 8080;                                   // 896
-  var bindPathPrefix = proxyConfig.bindPathPrefix || "";                                 // 897
-  // XXX also support galaxy-based lookup                                                // 898
-  if (!proxyConfig.proxyEndpoint)                                                        // 899
-    throw new Error("missing proxyEndpoint");                                            // 900
-  if (!proxyConfig.bindHost)                                                             // 901
-    throw new Error("missing bindHost");                                                 // 902
-  if (!process.env.GALAXY_JOB)                                                           // 903
-    throw new Error("missing $GALAXY_JOB");                                              // 904
-  if (!process.env.GALAXY_APP)                                                           // 905
-    throw new Error("missing $GALAXY_APP");                                              // 906
-  if (!process.env.LAST_START)                                                           // 907
-    throw new Error("missing $LAST_START");                                              // 908
-                                                                                         // 909
-  // XXX rename pid argument to bindTo.                                                  // 910
-  // XXX factor out into a 'getPid' function in a 'galaxy' package?                      // 911
-  var pid = {                                                                            // 912
-    job: process.env.GALAXY_JOB,                                                         // 913
-    lastStarted: +(process.env.LAST_START),                                              // 914
-    app: process.env.GALAXY_APP                                                          // 915
-  };                                                                                     // 916
-  var myHost = os.hostname();                                                            // 917
-                                                                                         // 918
-  WebAppInternals.usingDdpProxy = true;                                                  // 919
-                                                                                         // 920
-  // This is run after packages are loaded (in main) so we can use                       // 921
-  // Follower.connect.                                                                   // 922
-  if (proxy) {                                                                           // 923
-    // XXX the concept here is that our configuration has changed and                    // 924
-    // we have connected to an entirely new follower set, which does                     // 925
-    // not have the state that we set up on the follower set that we                     // 926
-    // were previously connected to, and so we need to recreate all of                   // 927
-    // our bindings -- analogous to getting a SIGHUP and rereading                       // 928
-    // your configuration file. so probably this should actually tear                    // 929
-    // down the connection and make a whole new one, rather than                         // 930
-    // hot-reconnecting to a different URL.                                              // 931
-    proxy.reconnect({                                                                    // 932
-      url: proxyConfig.proxyEndpoint                                                     // 933
-    });                                                                                  // 934
-  } else {                                                                               // 935
-    proxy = Package["follower-livedata"].Follower.connect(                               // 936
-      proxyConfig.proxyEndpoint, {                                                       // 937
-        group: "proxy"                                                                   // 938
-      }                                                                                  // 939
-    );                                                                                   // 940
-  }                                                                                      // 941
-                                                                                         // 942
-  var route = process.env.ROUTE;                                                         // 943
-  var ourHost = route.split(":")[0];                                                     // 944
-  var ourPort = +route.split(":")[1];                                                    // 945
-                                                                                         // 946
-  var outstanding = 0;                                                                   // 947
-  var startedAll = false;                                                                // 948
-  var checkComplete = function () {                                                      // 949
-    if (startedAll && ! outstanding)                                                     // 950
-      Log("Bound to proxy.");                                                            // 951
-  };                                                                                     // 952
-  var makeCallback = function () {                                                       // 953
-    outstanding++;                                                                       // 954
-    return function (err) {                                                              // 955
-      if (err)                                                                           // 956
-        throw err;                                                                       // 957
-      outstanding--;                                                                     // 958
-      checkComplete();                                                                   // 959
-    };                                                                                   // 960
-  };                                                                                     // 961
-                                                                                         // 962
-  // for now, have our (temporary) requiresAuth flag apply to all                        // 963
-  // routes created by this process.                                                     // 964
-  var requiresDdpAuth = !! proxyConfig.requiresAuth;                                     // 965
-  var requiresHttpAuth = (!! proxyConfig.requiresAuth) &&                                // 966
-        (pid.app !== "panel" && pid.app !== "auth");                                     // 967
-                                                                                         // 968
-  // XXX a current limitation is that we treat securePort and                            // 969
-  // insecurePort as a global configuration parameter -- we assume                       // 970
-  // that if the proxy wants us to ask for 8080 to get port 80 traffic                   // 971
-  // on our default hostname, that's the same port that we would use                     // 972
-  // to get traffic on some other hostname that our proxy listens                        // 973
-  // for. Likewise, we assume that if the proxy can receive secure                       // 974
-  // traffic for our domain, it can assume secure traffic for any                        // 975
-  // domain! Hopefully this will get cleaned up before too long by                       // 976
-  // pushing that logic into the proxy service, so we can just ask for                   // 977
-  // port 80.                                                                            // 978
-                                                                                         // 979
-  // XXX BUG: if our configuration changes, and bindPathPrefix                           // 980
-  // changes, it appears that we will not remove the routes derived                      // 981
-  // from the old bindPathPrefix from the proxy (until the process                       // 982
-  // exits). It is not actually normal for bindPathPrefix to change,                     // 983
-  // certainly not without a process restart for other reasons, but                      // 984
-  // it'd be nice to fix.                                                                // 985
-                                                                                         // 986
-  _.each(routes, function (route) {                                                      // 987
-    var parsedUrl = url.parse(route.url, /* parseQueryString */ false,                   // 988
-                              /* slashesDenoteHost aka workRight */ true);               // 989
-    if (parsedUrl.protocol || parsedUrl.port || parsedUrl.search)                        // 990
-      throw new Error("Bad url");                                                        // 991
-    parsedUrl.host = null;                                                               // 992
-    parsedUrl.path = null;                                                               // 993
-    if (! parsedUrl.hostname) {                                                          // 994
-      parsedUrl.hostname = proxyConfig.bindHost;                                         // 995
-      if (! parsedUrl.pathname)                                                          // 996
-        parsedUrl.pathname = "";                                                         // 997
-      if (! parsedUrl.pathname.indexOf("/") !== 0) {                                     // 998
-        // Relative path                                                                 // 999
-        parsedUrl.pathname = bindPathPrefix + parsedUrl.pathname;                        // 1000
-      }                                                                                  // 1001
-    }                                                                                    // 1002
-    var version = "";                                                                    // 1003
-                                                                                         // 1004
-    var AppConfig = Package["application-configuration"].AppConfig;                      // 1005
-    version = AppConfig.getStarForThisJob() || "";                                       // 1006
-                                                                                         // 1007
-                                                                                         // 1008
-    var parsedDdpUrl = _.clone(parsedUrl);                                               // 1009
-    parsedDdpUrl.protocol = "ddp";                                                       // 1010
-    // Node has a hardcoded list of protocols that get '://' instead                     // 1011
-    // of ':'. ddp needs to be added to that whitelist. Until then, we                   // 1012
-    // can set the undocumented attribute 'slashes' to get the right                     // 1013
-    // behavior. It's not clear whether than is by design or accident.                   // 1014
-    parsedDdpUrl.slashes = true;                                                         // 1015
-    parsedDdpUrl.port = '' + securePort;                                                 // 1016
-    var ddpUrl = url.format(parsedDdpUrl);                                               // 1017
-                                                                                         // 1018
-    var proxyToHost, proxyToPort, proxyToPathPrefix;                                     // 1019
-    if (! _.has(route, 'forwardTo')) {                                                   // 1020
-      proxyToHost = ourHost;                                                             // 1021
-      proxyToPort = ourPort;                                                             // 1022
-      proxyToPathPrefix = parsedUrl.pathname;                                            // 1023
-    } else {                                                                             // 1024
-      var parsedFwdUrl = url.parse(route.forwardTo, false, true);                        // 1025
-      if (! parsedFwdUrl.hostname || parsedFwdUrl.protocol)                              // 1026
-        throw new Error("Bad forward url");                                              // 1027
-      proxyToHost = parsedFwdUrl.hostname;                                               // 1028
-      proxyToPort = parseInt(parsedFwdUrl.port || "80");                                 // 1029
-      proxyToPathPrefix = parsedFwdUrl.pathname || "";                                   // 1030
-    }                                                                                    // 1031
-                                                                                         // 1032
-    if (route.ddp) {                                                                     // 1033
-      proxy.call('bindDdp', {                                                            // 1034
-        pid: pid,                                                                        // 1035
-        bindTo: {                                                                        // 1036
-          ddpUrl: ddpUrl,                                                                // 1037
-          insecurePort: insecurePort                                                     // 1038
-        },                                                                               // 1039
-        proxyTo: {                                                                       // 1040
-          tags: [version],                                                               // 1041
-          host: proxyToHost,                                                             // 1042
-          port: proxyToPort,                                                             // 1043
-          pathPrefix: proxyToPathPrefix + '/websocket'                                   // 1044
-        },                                                                               // 1045
-        requiresAuth: requiresDdpAuth                                                    // 1046
-      }, makeCallback());                                                                // 1047
-    }                                                                                    // 1048
-                                                                                         // 1049
-    if (route.http) {                                                                    // 1050
-      proxy.call('bindHttp', {                                                           // 1051
-        pid: pid,                                                                        // 1052
-        bindTo: {                                                                        // 1053
-          host: parsedUrl.hostname,                                                      // 1054
-          port: insecurePort,                                                            // 1055
-          pathPrefix: parsedUrl.pathname                                                 // 1056
-        },                                                                               // 1057
-        proxyTo: {                                                                       // 1058
-          tags: [version],                                                               // 1059
-          host: proxyToHost,                                                             // 1060
-          port: proxyToPort,                                                             // 1061
-          pathPrefix: proxyToPathPrefix                                                  // 1062
-        },                                                                               // 1063
-        requiresAuth: requiresHttpAuth                                                   // 1064
-      }, makeCallback());                                                                // 1065
-                                                                                         // 1066
-      // Only make the secure binding if we've been told that the                        // 1067
-      // proxy knows how terminate secure connections for us (has an                     // 1068
-      // appropriate cert, can bind the necessary port..)                                // 1069
-      if (proxyConfig.securePort !== null) {                                             // 1070
-        proxy.call('bindHttp', {                                                         // 1071
-          pid: pid,                                                                      // 1072
-          bindTo: {                                                                      // 1073
-            host: parsedUrl.hostname,                                                    // 1074
-            port: securePort,                                                            // 1075
-            pathPrefix: parsedUrl.pathname,                                              // 1076
-            ssl: true                                                                    // 1077
-          },                                                                             // 1078
-          proxyTo: {                                                                     // 1079
-            tags: [version],                                                             // 1080
-            host: proxyToHost,                                                           // 1081
-            port: proxyToPort,                                                           // 1082
-            pathPrefix: proxyToPathPrefix                                                // 1083
-          },                                                                             // 1084
-          requiresAuth: requiresHttpAuth                                                 // 1085
-        }, makeCallback());                                                              // 1086
-      }                                                                                  // 1087
-    }                                                                                    // 1088
-  });                                                                                    // 1089
-                                                                                         // 1090
-  startedAll = true;                                                                     // 1091
-  checkComplete();                                                                       // 1092
-};                                                                                       // 1093
-                                                                                         // 1094
-// (Internal, unsupported interface -- subject to change)                                // 1095
-//                                                                                       // 1096
-// Listen for HTTP and/or DDP traffic and route it somewhere. Only                       // 1097
-// takes effect when using a proxy service.                                              // 1098
-//                                                                                       // 1099
-// 'url' is the traffic that we want to route, interpreted relative to                   // 1100
-// the default URL where this app has been told to serve itself. It                      // 1101
-// may not have a scheme or port, but it may have a host and a path,                     // 1102
-// and if no host is provided the path need not be absolute. The                         // 1103
-// following cases are possible:                                                         // 1104
-//                                                                                       // 1105
-//   //somehost.com                                                                      // 1106
-//     All incoming traffic for 'somehost.com'                                           // 1107
-//   //somehost.com/foo/bar                                                              // 1108
-//     All incoming traffic for 'somehost.com', but only when                            // 1109
-//     the first two path components are 'foo' and 'bar'.                                // 1110
-//   /foo/bar                                                                            // 1111
-//     Incoming traffic on our default host, but only when the                           // 1112
-//     first two path components are 'foo' and 'bar'.                                    // 1113
-//   foo/bar                                                                             // 1114
-//     Incoming traffic on our default host, but only when the path                      // 1115
-//     starts with our default path prefix, followed by 'foo' and                        // 1116
-//     'bar'.                                                                            // 1117
-//                                                                                       // 1118
-// (Yes, these scheme-less URLs that start with '//' are legal URLs.)                    // 1119
-//                                                                                       // 1120
-// You can select either DDP traffic, HTTP traffic, or both. Both                        // 1121
-// secure and insecure traffic will be gathered (assuming the proxy                      // 1122
-// service is capable, eg, has appropriate certs and port mappings).                     // 1123
-//                                                                                       // 1124
-// With no 'forwardTo' option, the traffic is received by this process                   // 1125
-// for service by the hooks in this 'webapp' package. The original URL                   // 1126
-// is preserved (that is, if you bind "/a", and a user visits "/a/b",                    // 1127
-// the app receives a request with a path of "/a/b", not a path of                       // 1128
-// "/b").                                                                                // 1129
-//                                                                                       // 1130
-// With 'forwardTo', the process is instead sent to some other remote                    // 1131
-// host. The URL is adjusted by stripping the path components in 'url'                   // 1132
-// and putting the path components in the 'forwardTo' URL in their                       // 1133
-// place. For example, if you forward "//somehost/a" to                                  // 1134
-// "//otherhost/x", and the user types "//somehost/a/b" into their                       // 1135
-// browser, then otherhost will receive a request with a Host header                     // 1136
-// of "somehost" and a path of "/x/b".                                                   // 1137
-//                                                                                       // 1138
-// The routing continues until this process exits. For now, all of the                   // 1139
-// routes must be set up ahead of time, before the initial                               // 1140
-// registration with the proxy. Calling addRoute from the top level of                   // 1141
-// your JS should do the trick.                                                          // 1142
-//                                                                                       // 1143
-// When multiple routes are present that match a given request, the                      // 1144
-// most specific route wins. When routes with equal specificity are                      // 1145
-// present, the proxy service will distribute the traffic between                        // 1146
-// them.                                                                                 // 1147
-//                                                                                       // 1148
-// options may be:                                                                       // 1149
-// - ddp: if true, the default, include DDP traffic. This includes                       // 1150
-//   both secure and insecure traffic, and both websocket and sockjs                     // 1151
-//   transports.                                                                         // 1152
-// - http: if true, the default, include HTTP/HTTPS traffic.                             // 1153
-// - forwardTo: if provided, should be a URL with a host, optional                       // 1154
-//   path and port, and no scheme (the scheme will be derived from the                   // 1155
-//   traffic type; for now it will always be a http or ws connection,                    // 1156
-//   never https or wss, but we could add a forwardSecure flag to                        // 1157
-//   re-encrypt).                                                                        // 1158
-var routes = [];                                                                         // 1159
-WebAppInternals.addRoute = function (url, options) {                                     // 1160
-  options = _.extend({                                                                   // 1161
-    ddp: true,                                                                           // 1162
-    http: true                                                                           // 1163
-  }, options || {});                                                                     // 1164
-                                                                                         // 1165
-  if (proxy)                                                                             // 1166
-    // In the future, lift this restriction                                              // 1167
-    throw new Error("Too late to add routes");                                           // 1168
-                                                                                         // 1169
-  routes.push(_.extend({ url: url }, options));                                          // 1170
-};                                                                                       // 1171
-                                                                                         // 1172
-// Receive traffic on our default URL.                                                   // 1173
-WebAppInternals.addRoute("");                                                            // 1174
-                                                                                         // 1175
-runWebAppServer();                                                                       // 1176
-                                                                                         // 1177
-                                                                                         // 1178
-var inlineScriptsAllowed = true;                                                         // 1179
-                                                                                         // 1180
-WebAppInternals.inlineScriptsAllowed = function () {                                     // 1181
-  return inlineScriptsAllowed;                                                           // 1182
-};                                                                                       // 1183
-                                                                                         // 1184
-WebAppInternals.setInlineScriptsAllowed = function (value) {                             // 1185
-  inlineScriptsAllowed = value;                                                          // 1186
-  WebAppInternals.generateBoilerplate();                                                 // 1187
-};                                                                                       // 1188
-                                                                                         // 1189
-WebAppInternals.setBundledJsCssPrefix = function (prefix) {                              // 1190
-  bundledJsCssPrefix = prefix;                                                           // 1191
-  WebAppInternals.generateBoilerplate();                                                 // 1192
-};                                                                                       // 1193
-                                                                                         // 1194
-// Packages can call `WebAppInternals.addStaticJs` to specify static                     // 1195
-// JavaScript to be included in the app. This static JS will be inlined,                 // 1196
-// unless inline scripts have been disabled, in which case it will be                    // 1197
-// served under `/<sha1 of contents>`.                                                   // 1198
-var additionalStaticJs = {};                                                             // 1199
-WebAppInternals.addStaticJs = function (contents) {                                      // 1200
-  additionalStaticJs["/" + sha1(contents) + ".js"] = contents;                           // 1201
-};                                                                                       // 1202
-                                                                                         // 1203
-// Exported for tests                                                                    // 1204
-WebAppInternals.getBoilerplate = getBoilerplate;                                         // 1205
-WebAppInternals.additionalStaticJs = additionalStaticJs;                                 // 1206
-WebAppInternals.validPid = validPid;                                                     // 1207
-                                                                                         // 1208
+      AppConfig.configurePackage('webapp', function (configuration) {                    // 777
+        if (proxyBinding)                                                                // 778
+          proxyBinding.stop();                                                           // 779
+        if (configuration && configuration.proxy) {                                      // 780
+          // TODO: We got rid of the place where this checks the app's                   // 781
+          // configuration, because this wants to be configured for some things          // 782
+          // on a per-job basis.  Discuss w/ teammates.                                  // 783
+          proxyBinding = AppConfig.configureService(                                     // 784
+            "proxy",                                                                     // 785
+            "pre0",                                                                      // 786
+            function (proxyService) {                                                    // 787
+              if (proxyService && ! _.isEmpty(proxyService)) {                           // 788
+                var proxyConf;                                                           // 789
+                // XXX Figure out a per-job way to specify bind location                 // 790
+                // (besides hardcoding the location for ADMIN_APP jobs).                 // 791
+                if (process.env.ADMIN_APP) {                                             // 792
+                  var bindPathPrefix = "";                                               // 793
+                  if (process.env.GALAXY_APP !== "panel") {                              // 794
+                    bindPathPrefix = "/" + bindPathPrefix +                              // 795
+                      encodeURIComponent(                                                // 796
+                        process.env.GALAXY_APP                                           // 797
+                      ).replace(/\./g, '_');                                             // 798
+                  }                                                                      // 799
+                  proxyConf = {                                                          // 800
+                    bindHost: process.env.GALAXY_NAME,                                   // 801
+                    bindPathPrefix: bindPathPrefix,                                      // 802
+                    requiresAuth: true                                                   // 803
+                  };                                                                     // 804
+                } else {                                                                 // 805
+                  proxyConf = configuration.proxy;                                       // 806
+                }                                                                        // 807
+                Log("Attempting to bind to proxy at " +                                  // 808
+                    proxyService);                                                       // 809
+                WebAppInternals.bindToProxy(_.extend({                                   // 810
+                  proxyEndpoint: proxyService                                            // 811
+                }, proxyConf));                                                          // 812
+              }                                                                          // 813
+            }                                                                            // 814
+          );                                                                             // 815
+        }                                                                                // 816
+      });                                                                                // 817
+                                                                                         // 818
+      var callbacks = onListeningCallbacks;                                              // 819
+      onListeningCallbacks = null;                                                       // 820
+      _.each(callbacks, function (x) { x(); });                                          // 821
+                                                                                         // 822
+    }, function (e) {                                                                    // 823
+      console.error("Error listening:", e);                                              // 824
+      console.error(e && e.stack);                                                       // 825
+    }));                                                                                 // 826
+                                                                                         // 827
+    return 'DAEMON';                                                                     // 828
+  };                                                                                     // 829
+};                                                                                       // 830
+                                                                                         // 831
+                                                                                         // 832
+var proxy;                                                                               // 833
+WebAppInternals.bindToProxy = function (proxyConfig) {                                   // 834
+  var securePort = proxyConfig.securePort || 4433;                                       // 835
+  var insecurePort = proxyConfig.insecurePort || 8080;                                   // 836
+  var bindPathPrefix = proxyConfig.bindPathPrefix || "";                                 // 837
+  // XXX also support galaxy-based lookup                                                // 838
+  if (!proxyConfig.proxyEndpoint)                                                        // 839
+    throw new Error("missing proxyEndpoint");                                            // 840
+  if (!proxyConfig.bindHost)                                                             // 841
+    throw new Error("missing bindHost");                                                 // 842
+  if (!process.env.GALAXY_JOB)                                                           // 843
+    throw new Error("missing $GALAXY_JOB");                                              // 844
+  if (!process.env.GALAXY_APP)                                                           // 845
+    throw new Error("missing $GALAXY_APP");                                              // 846
+  if (!process.env.LAST_START)                                                           // 847
+    throw new Error("missing $LAST_START");                                              // 848
+                                                                                         // 849
+  // XXX rename pid argument to bindTo.                                                  // 850
+  // XXX factor out into a 'getPid' function in a 'galaxy' package?                      // 851
+  var pid = {                                                                            // 852
+    job: process.env.GALAXY_JOB,                                                         // 853
+    lastStarted: +(process.env.LAST_START),                                              // 854
+    app: process.env.GALAXY_APP                                                          // 855
+  };                                                                                     // 856
+  var myHost = os.hostname();                                                            // 857
+                                                                                         // 858
+  WebAppInternals.usingDdpProxy = true;                                                  // 859
+                                                                                         // 860
+  // This is run after packages are loaded (in main) so we can use                       // 861
+  // Follower.connect.                                                                   // 862
+  if (proxy) {                                                                           // 863
+    // XXX the concept here is that our configuration has changed and                    // 864
+    // we have connected to an entirely new follower set, which does                     // 865
+    // not have the state that we set up on the follower set that we                     // 866
+    // were previously connected to, and so we need to recreate all of                   // 867
+    // our bindings -- analogous to getting a SIGHUP and rereading                       // 868
+    // your configuration file. so probably this should actually tear                    // 869
+    // down the connection and make a whole new one, rather than                         // 870
+    // hot-reconnecting to a different URL.                                              // 871
+    proxy.reconnect({                                                                    // 872
+      url: proxyConfig.proxyEndpoint                                                     // 873
+    });                                                                                  // 874
+  } else {                                                                               // 875
+    proxy = Package["follower-livedata"].Follower.connect(                               // 876
+      proxyConfig.proxyEndpoint, {                                                       // 877
+        group: "proxy"                                                                   // 878
+      }                                                                                  // 879
+    );                                                                                   // 880
+  }                                                                                      // 881
+                                                                                         // 882
+  var route = process.env.ROUTE;                                                         // 883
+  var ourHost = route.split(":")[0];                                                     // 884
+  var ourPort = +route.split(":")[1];                                                    // 885
+                                                                                         // 886
+  var outstanding = 0;                                                                   // 887
+  var startedAll = false;                                                                // 888
+  var checkComplete = function () {                                                      // 889
+    if (startedAll && ! outstanding)                                                     // 890
+      Log("Bound to proxy.");                                                            // 891
+  };                                                                                     // 892
+  var makeCallback = function () {                                                       // 893
+    outstanding++;                                                                       // 894
+    return function (err) {                                                              // 895
+      if (err)                                                                           // 896
+        throw err;                                                                       // 897
+      outstanding--;                                                                     // 898
+      checkComplete();                                                                   // 899
+    };                                                                                   // 900
+  };                                                                                     // 901
+                                                                                         // 902
+  // for now, have our (temporary) requiresAuth flag apply to all                        // 903
+  // routes created by this process.                                                     // 904
+  var requiresDdpAuth = !! proxyConfig.requiresAuth;                                     // 905
+  var requiresHttpAuth = (!! proxyConfig.requiresAuth) &&                                // 906
+        (pid.app !== "panel" && pid.app !== "auth");                                     // 907
+                                                                                         // 908
+  // XXX a current limitation is that we treat securePort and                            // 909
+  // insecurePort as a global configuration parameter -- we assume                       // 910
+  // that if the proxy wants us to ask for 8080 to get port 80 traffic                   // 911
+  // on our default hostname, that's the same port that we would use                     // 912
+  // to get traffic on some other hostname that our proxy listens                        // 913
+  // for. Likewise, we assume that if the proxy can receive secure                       // 914
+  // traffic for our domain, it can assume secure traffic for any                        // 915
+  // domain! Hopefully this will get cleaned up before too long by                       // 916
+  // pushing that logic into the proxy service, so we can just ask for                   // 917
+  // port 80.                                                                            // 918
+                                                                                         // 919
+  // XXX BUG: if our configuration changes, and bindPathPrefix                           // 920
+  // changes, it appears that we will not remove the routes derived                      // 921
+  // from the old bindPathPrefix from the proxy (until the process                       // 922
+  // exits). It is not actually normal for bindPathPrefix to change,                     // 923
+  // certainly not without a process restart for other reasons, but                      // 924
+  // it'd be nice to fix.                                                                // 925
+                                                                                         // 926
+  _.each(routes, function (route) {                                                      // 927
+    var parsedUrl = url.parse(route.url, /* parseQueryString */ false,                   // 928
+                              /* slashesDenoteHost aka workRight */ true);               // 929
+    if (parsedUrl.protocol || parsedUrl.port || parsedUrl.search)                        // 930
+      throw new Error("Bad url");                                                        // 931
+    parsedUrl.host = null;                                                               // 932
+    parsedUrl.path = null;                                                               // 933
+    if (! parsedUrl.hostname) {                                                          // 934
+      parsedUrl.hostname = proxyConfig.bindHost;                                         // 935
+      if (! parsedUrl.pathname)                                                          // 936
+        parsedUrl.pathname = "";                                                         // 937
+      if (! parsedUrl.pathname.indexOf("/") !== 0) {                                     // 938
+        // Relative path                                                                 // 939
+        parsedUrl.pathname = bindPathPrefix + parsedUrl.pathname;                        // 940
+      }                                                                                  // 941
+    }                                                                                    // 942
+    var version = "";                                                                    // 943
+                                                                                         // 944
+    var AppConfig = Package["application-configuration"].AppConfig;                      // 945
+    version = AppConfig.getStarForThisJob() || "";                                       // 946
+                                                                                         // 947
+                                                                                         // 948
+    var parsedDdpUrl = _.clone(parsedUrl);                                               // 949
+    parsedDdpUrl.protocol = "ddp";                                                       // 950
+    // Node has a hardcoded list of protocols that get '://' instead                     // 951
+    // of ':'. ddp needs to be added to that whitelist. Until then, we                   // 952
+    // can set the undocumented attribute 'slashes' to get the right                     // 953
+    // behavior. It's not clear whether than is by design or accident.                   // 954
+    parsedDdpUrl.slashes = true;                                                         // 955
+    parsedDdpUrl.port = '' + securePort;                                                 // 956
+    var ddpUrl = url.format(parsedDdpUrl);                                               // 957
+                                                                                         // 958
+    var proxyToHost, proxyToPort, proxyToPathPrefix;                                     // 959
+    if (! _.has(route, 'forwardTo')) {                                                   // 960
+      proxyToHost = ourHost;                                                             // 961
+      proxyToPort = ourPort;                                                             // 962
+      proxyToPathPrefix = parsedUrl.pathname;                                            // 963
+    } else {                                                                             // 964
+      var parsedFwdUrl = url.parse(route.forwardTo, false, true);                        // 965
+      if (! parsedFwdUrl.hostname || parsedFwdUrl.protocol)                              // 966
+        throw new Error("Bad forward url");                                              // 967
+      proxyToHost = parsedFwdUrl.hostname;                                               // 968
+      proxyToPort = parseInt(parsedFwdUrl.port || "80");                                 // 969
+      proxyToPathPrefix = parsedFwdUrl.pathname || "";                                   // 970
+    }                                                                                    // 971
+                                                                                         // 972
+    if (route.ddp) {                                                                     // 973
+      proxy.call('bindDdp', {                                                            // 974
+        pid: pid,                                                                        // 975
+        bindTo: {                                                                        // 976
+          ddpUrl: ddpUrl,                                                                // 977
+          insecurePort: insecurePort                                                     // 978
+        },                                                                               // 979
+        proxyTo: {                                                                       // 980
+          tags: [version],                                                               // 981
+          host: proxyToHost,                                                             // 982
+          port: proxyToPort,                                                             // 983
+          pathPrefix: proxyToPathPrefix + '/websocket'                                   // 984
+        },                                                                               // 985
+        requiresAuth: requiresDdpAuth                                                    // 986
+      }, makeCallback());                                                                // 987
+    }                                                                                    // 988
+                                                                                         // 989
+    if (route.http) {                                                                    // 990
+      proxy.call('bindHttp', {                                                           // 991
+        pid: pid,                                                                        // 992
+        bindTo: {                                                                        // 993
+          host: parsedUrl.hostname,                                                      // 994
+          port: insecurePort,                                                            // 995
+          pathPrefix: parsedUrl.pathname                                                 // 996
+        },                                                                               // 997
+        proxyTo: {                                                                       // 998
+          tags: [version],                                                               // 999
+          host: proxyToHost,                                                             // 1000
+          port: proxyToPort,                                                             // 1001
+          pathPrefix: proxyToPathPrefix                                                  // 1002
+        },                                                                               // 1003
+        requiresAuth: requiresHttpAuth                                                   // 1004
+      }, makeCallback());                                                                // 1005
+                                                                                         // 1006
+      // Only make the secure binding if we've been told that the                        // 1007
+      // proxy knows how terminate secure connections for us (has an                     // 1008
+      // appropriate cert, can bind the necessary port..)                                // 1009
+      if (proxyConfig.securePort !== null) {                                             // 1010
+        proxy.call('bindHttp', {                                                         // 1011
+          pid: pid,                                                                      // 1012
+          bindTo: {                                                                      // 1013
+            host: parsedUrl.hostname,                                                    // 1014
+            port: securePort,                                                            // 1015
+            pathPrefix: parsedUrl.pathname,                                              // 1016
+            ssl: true                                                                    // 1017
+          },                                                                             // 1018
+          proxyTo: {                                                                     // 1019
+            tags: [version],                                                             // 1020
+            host: proxyToHost,                                                           // 1021
+            port: proxyToPort,                                                           // 1022
+            pathPrefix: proxyToPathPrefix                                                // 1023
+          },                                                                             // 1024
+          requiresAuth: requiresHttpAuth                                                 // 1025
+        }, makeCallback());                                                              // 1026
+      }                                                                                  // 1027
+    }                                                                                    // 1028
+  });                                                                                    // 1029
+                                                                                         // 1030
+  startedAll = true;                                                                     // 1031
+  checkComplete();                                                                       // 1032
+};                                                                                       // 1033
+                                                                                         // 1034
+// (Internal, unsupported interface -- subject to change)                                // 1035
+//                                                                                       // 1036
+// Listen for HTTP and/or DDP traffic and route it somewhere. Only                       // 1037
+// takes effect when using a proxy service.                                              // 1038
+//                                                                                       // 1039
+// 'url' is the traffic that we want to route, interpreted relative to                   // 1040
+// the default URL where this app has been told to serve itself. It                      // 1041
+// may not have a scheme or port, but it may have a host and a path,                     // 1042
+// and if no host is provided the path need not be absolute. The                         // 1043
+// following cases are possible:                                                         // 1044
+//                                                                                       // 1045
+//   //somehost.com                                                                      // 1046
+//     All incoming traffic for 'somehost.com'                                           // 1047
+//   //somehost.com/foo/bar                                                              // 1048
+//     All incoming traffic for 'somehost.com', but only when                            // 1049
+//     the first two path components are 'foo' and 'bar'.                                // 1050
+//   /foo/bar                                                                            // 1051
+//     Incoming traffic on our default host, but only when the                           // 1052
+//     first two path components are 'foo' and 'bar'.                                    // 1053
+//   foo/bar                                                                             // 1054
+//     Incoming traffic on our default host, but only when the path                      // 1055
+//     starts with our default path prefix, followed by 'foo' and                        // 1056
+//     'bar'.                                                                            // 1057
+//                                                                                       // 1058
+// (Yes, these scheme-less URLs that start with '//' are legal URLs.)                    // 1059
+//                                                                                       // 1060
+// You can select either DDP traffic, HTTP traffic, or both. Both                        // 1061
+// secure and insecure traffic will be gathered (assuming the proxy                      // 1062
+// service is capable, eg, has appropriate certs and port mappings).                     // 1063
+//                                                                                       // 1064
+// With no 'forwardTo' option, the traffic is received by this process                   // 1065
+// for service by the hooks in this 'webapp' package. The original URL                   // 1066
+// is preserved (that is, if you bind "/a", and a user visits "/a/b",                    // 1067
+// the app receives a request with a path of "/a/b", not a path of                       // 1068
+// "/b").                                                                                // 1069
+//                                                                                       // 1070
+// With 'forwardTo', the process is instead sent to some other remote                    // 1071
+// host. The URL is adjusted by stripping the path components in 'url'                   // 1072
+// and putting the path components in the 'forwardTo' URL in their                       // 1073
+// place. For example, if you forward "//somehost/a" to                                  // 1074
+// "//otherhost/x", and the user types "//somehost/a/b" into their                       // 1075
+// browser, then otherhost will receive a request with a Host header                     // 1076
+// of "somehost" and a path of "/x/b".                                                   // 1077
+//                                                                                       // 1078
+// The routing continues until this process exits. For now, all of the                   // 1079
+// routes must be set up ahead of time, before the initial                               // 1080
+// registration with the proxy. Calling addRoute from the top level of                   // 1081
+// your JS should do the trick.                                                          // 1082
+//                                                                                       // 1083
+// When multiple routes are present that match a given request, the                      // 1084
+// most specific route wins. When routes with equal specificity are                      // 1085
+// present, the proxy service will distribute the traffic between                        // 1086
+// them.                                                                                 // 1087
+//                                                                                       // 1088
+// options may be:                                                                       // 1089
+// - ddp: if true, the default, include DDP traffic. This includes                       // 1090
+//   both secure and insecure traffic, and both websocket and sockjs                     // 1091
+//   transports.                                                                         // 1092
+// - http: if true, the default, include HTTP/HTTPS traffic.                             // 1093
+// - forwardTo: if provided, should be a URL with a host, optional                       // 1094
+//   path and port, and no scheme (the scheme will be derived from the                   // 1095
+//   traffic type; for now it will always be a http or ws connection,                    // 1096
+//   never https or wss, but we could add a forwardSecure flag to                        // 1097
+//   re-encrypt).                                                                        // 1098
+var routes = [];                                                                         // 1099
+WebAppInternals.addRoute = function (url, options) {                                     // 1100
+  options = _.extend({                                                                   // 1101
+    ddp: true,                                                                           // 1102
+    http: true                                                                           // 1103
+  }, options || {});                                                                     // 1104
+                                                                                         // 1105
+  if (proxy)                                                                             // 1106
+    // In the future, lift this restriction                                              // 1107
+    throw new Error("Too late to add routes");                                           // 1108
+                                                                                         // 1109
+  routes.push(_.extend({ url: url }, options));                                          // 1110
+};                                                                                       // 1111
+                                                                                         // 1112
+// Receive traffic on our default URL.                                                   // 1113
+WebAppInternals.addRoute("");                                                            // 1114
+                                                                                         // 1115
+runWebAppServer();                                                                       // 1116
+                                                                                         // 1117
+                                                                                         // 1118
+var inlineScriptsAllowed = true;                                                         // 1119
+                                                                                         // 1120
+WebAppInternals.inlineScriptsAllowed = function () {                                     // 1121
+  return inlineScriptsAllowed;                                                           // 1122
+};                                                                                       // 1123
+                                                                                         // 1124
+WebAppInternals.setInlineScriptsAllowed = function (value) {                             // 1125
+  inlineScriptsAllowed = value;                                                          // 1126
+  WebAppInternals.generateBoilerplate();                                                 // 1127
+};                                                                                       // 1128
+                                                                                         // 1129
+WebAppInternals.setBundledJsCssPrefix = function (prefix) {                              // 1130
+  bundledJsCssPrefix = prefix;                                                           // 1131
+  WebAppInternals.generateBoilerplate();                                                 // 1132
+};                                                                                       // 1133
+                                                                                         // 1134
+// Packages can call `WebAppInternals.addStaticJs` to specify static                     // 1135
+// JavaScript to be included in the app. This static JS will be inlined,                 // 1136
+// unless inline scripts have been disabled, in which case it will be                    // 1137
+// served under `/<sha1 of contents>`.                                                   // 1138
+var additionalStaticJs = {};                                                             // 1139
+WebAppInternals.addStaticJs = function (contents) {                                      // 1140
+  additionalStaticJs["/" + sha1(contents) + ".js"] = contents;                           // 1141
+};                                                                                       // 1142
+                                                                                         // 1143
+// Exported for tests                                                                    // 1144
+WebAppInternals.getBoilerplate = getBoilerplate;                                         // 1145
+WebAppInternals.additionalStaticJs = additionalStaticJs;                                 // 1146
+                                                                                         // 1147
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 }).call(this);
