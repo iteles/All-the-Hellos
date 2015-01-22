@@ -704,11 +704,11 @@
       "where": "client",
       "type": "js",
       "cacheable": true,
-      "url": "/packages/velocity_test-proxy.js?0622748c6a098ad3134c1df05ceb5a8b06a5e898",
+      "url": "/packages/velocity_test-proxy.js?704035eb8a91fd50f45a44aa3c2c66a4ada008f3",
       "sourceMap": "packages/velocity_test-proxy.js.map",
-      "sourceMapUrl": "/packages/0622748c6a098ad3134c1df05ceb5a8b06a5e898.map",
-      "size": 3574,
-      "hash": "0622748c6a098ad3134c1df05ceb5a8b06a5e898"
+      "sourceMapUrl": "/packages/704035eb8a91fd50f45a44aa3c2c66a4ada008f3.map",
+      "size": 4111,
+      "hash": "704035eb8a91fd50f45a44aa3c2c66a4ada008f3"
     },
     {
       "path": "packages/velocity_node-soft-mirror.js",
