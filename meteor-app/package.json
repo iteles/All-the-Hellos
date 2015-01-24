@@ -1,0 +1,11 @@
+{
+  "name": "all-the-hellos-meteor",
+  "description": "Simple card and gift tracking app built in meteor",
+  "author": "Ines Teles",
+  "version": "0.0.1",
+  "devDependencies": {
+  },
+  "scripts": {
+    "test": "./tests/mocha/client/tests.js"
+  }
+}
